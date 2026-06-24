@@ -1,0 +1,47 @@
+import { useState } from 'react'
+import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
+import { useCreateTask } from '@/hooks/useTasks'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import TaskForm from '@/components/TaskForm'
+import type { TaskInput } from '@/lib/schemas'
+
+export default function CreateTaskDialog() {
+  const [open, setOpen] = useState(false)
+  const create = useCreateTask()
+
+  async function handleSubmit(values: TaskInput) {
+    const body = {
+      ...values,
+      assignedTo: values.assignedTo === '_none' || values.assignedTo === '' ? undefined : values.assignedTo,
+      dueDate: values.dueDate || undefined,
+    }
+    await create.mutateAsync(body)
+    toast.success('Task created')
+    setOpen(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="size-4" />
+          New task
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>New task</DialogTitle>
+        </DialogHeader>
+        <TaskForm onSubmit={handleSubmit} submitLabel="Create task" />
+      </DialogContent>
+    </Dialog>
+  )
+}
