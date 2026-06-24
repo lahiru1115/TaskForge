@@ -1,13 +1,12 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
 export type TaskPriority = 'low' | 'medium' | 'high';
-export type TaskStatus = 'open' | 'in_progress' | 'testing' | 'done';
+export type TaskStatus = 'open' | 'in_progress' | 'done';
 
 export const TASK_PRIORITIES: TaskPriority[] = ['low', 'medium', 'high'];
 export const TASK_STATUSES: TaskStatus[] = [
   'open',
   'in_progress',
-  'testing',
   'done',
 ];
 

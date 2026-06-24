@@ -47,7 +47,7 @@ async function seed() {
       title: 'Fix login redirect bug',
       description: 'After login, users are sometimes redirected to a blank page.',
       priority: 'high',
-      status: 'testing',
+      status: 'done',
       createdBy: regular._id,
       assignedTo: regular._id,
       dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
