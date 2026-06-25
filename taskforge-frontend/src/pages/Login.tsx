@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { AlertCircle } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import api from '@/lib/api'
 import { loginSchema, type LoginInput } from '@/lib/schemas'
@@ -9,10 +11,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [error, setError] = useState<string | null>(null)
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -20,13 +24,14 @@ export default function LoginPage() {
   })
 
   async function onSubmit(values: LoginInput) {
+    setError(null)
     try {
       const { data } = await api.post('/api/auth/login', values)
       login(data.user, data.token)
       navigate('/')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg ?? 'Login failed')
+      msg ? setError(msg) : toast.error('Login failed')
     }
   }
 
@@ -66,6 +71,12 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
+              {error && (
+                <Alert className="border-destructive/50 bg-destructive/10">
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                  <AlertDescription className="text-destructive">{error}</AlertDescription>
+                </Alert>
+              )}
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? 'Signing in…' : 'Sign in'}
               </Button>

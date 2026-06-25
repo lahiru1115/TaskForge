@@ -14,9 +14,12 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('tf_token')
-      localStorage.removeItem('tf_user')
-      window.location.href = '/login'
+      // Only redirect if not already on login page (allows login form to show errors)
+      if (window.location.pathname !== '/login') {
+        localStorage.removeItem('tf_token')
+        localStorage.removeItem('tf_user')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(err)
   },
