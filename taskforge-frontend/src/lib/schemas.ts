@@ -14,8 +14,8 @@ export const registerSchema = z.object({
 export const taskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high']).default('medium'),
-  status: z.enum(['open', 'in_progress', 'testing', 'done']).default('open'),
+  priority: z.enum(['low', 'medium', 'high']).optional(),
+  status: z.enum(['open', 'in_progress', 'testing', 'done']).optional(),
   dueDate: z.string().optional(),
   assignedTo: z.string().optional(),
 })

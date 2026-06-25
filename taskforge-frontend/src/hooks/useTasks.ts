@@ -85,3 +85,20 @@ export function useDeleteTask() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })
 }
+
+export interface TaskStats {
+  total: number
+  overdue: number
+  byStatus: Record<string, number>
+  byPriority: Record<string, number>
+}
+
+export function useTaskStats() {
+  return useQuery<TaskStats>({
+    queryKey: ['tasks', 'stats'],
+    queryFn: async () => {
+      const { data } = await api.get('/api/tasks/stats')
+      return data
+    },
+  })
+}
