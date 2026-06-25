@@ -23,9 +23,14 @@ export default function CreateTaskDialog() {
       assignedTo: values.assignedTo === '_none' || values.assignedTo === '' ? undefined : values.assignedTo,
       dueDate: values.dueDate || undefined,
     }
-    await create.mutateAsync(body)
-    toast.success('Task created')
-    setOpen(false)
+    try {
+      await create.mutateAsync(body)
+      toast.success('Task created')
+      setOpen(false)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg ?? 'Failed to create task')
+    }
   }
 
   return (

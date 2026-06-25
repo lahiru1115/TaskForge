@@ -9,6 +9,7 @@ import StatusBadge from '@/components/StatusBadge'
 import PriorityBadge from '@/components/PriorityBadge'
 import TaskForm from '@/components/TaskForm'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -65,7 +66,22 @@ export default function TaskDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="py-20 text-center text-muted-foreground">Loading task…</div>
+      <div className="mx-auto max-w-2xl grid gap-6">
+        <Skeleton className="h-8 w-20" />
+        <div className="grid gap-3">
+          <Skeleton className="h-8 w-3/4" />
+          <div className="flex gap-2">
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+        </div>
+        <Skeleton className="h-16 w-full" />
+        <div className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
+        </div>
+      </div>
     )
   }
 
@@ -106,15 +122,24 @@ export default function TaskDetailPage() {
         }
       : { status: values.status }
 
-    await update.mutateAsync(body)
-    toast.success('Task updated')
-    setEditOpen(false)
+    try {
+      await update.mutateAsync(body)
+      toast.success('Task updated')
+      setEditOpen(false)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg ?? 'Failed to update task')
+    }
   }
 
   async function handleDelete() {
-    await remove.mutateAsync(id!)
-    toast.success('Task deleted')
-    navigate('/tasks')
+    try {
+      await remove.mutateAsync(id!)
+      toast.success('Task deleted')
+      navigate('/tasks')
+    } catch {
+      toast.error('Failed to delete task')
+    }
   }
 
   const isOverdue =
