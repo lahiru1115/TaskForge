@@ -120,11 +120,14 @@ export async function createTask(req: Request, res: Response) {
 
 export async function getTask(req: Request, res: Response) {
   const { id } = req.params;
-  const task = await Task.findById(id)
-    .populate('createdBy', 'name email')
-    .populate('assignedTo', 'name email');
+  const task = await Task.findById(id);
 
   if (!task || !canView(task, req.user!)) throw ApiError.notFound('Task not found');
+
+  await task.populate([
+    { path: 'createdBy', select: 'name email' },
+    { path: 'assignedTo', select: 'name email' },
+  ]);
 
   res.json({ task });
 }
