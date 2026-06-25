@@ -20,7 +20,7 @@ export default function RegisterPage() {
   async function onSubmit(values: RegisterInput) {
     try {
       await api.post('/api/auth/register', values)
-      toast.success('Account created! Redirecting to login...')
+      toast.success('Account created!')
       navigate('/login')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
