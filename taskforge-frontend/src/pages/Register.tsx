@@ -7,7 +7,7 @@ import { registerSchema, type RegisterInput } from '@/lib/schemas'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Field, FieldLabel, FieldContent, FieldError, FieldGroup } from '@/components/ui/field'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -40,52 +40,57 @@ export default function RegisterPage() {
           <CardDescription>Create your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FieldGroup className="gap-4">
+              <Field>
+                <FieldLabel>Name</FieldLabel>
+                <FieldContent>
+                  <Input
+                    placeholder="Your name"
+                    {...form.register('name')}
+                    aria-invalid={!!form.formState.errors.name}
+                  />
+                </FieldContent>
+                {form.formState.errors.name && (
+                  <FieldError>{form.formState.errors.name.message}</FieldError>
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              </Field>
+
+              <Field>
+                <FieldLabel>Email</FieldLabel>
+                <FieldContent>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    {...form.register('email')}
+                    aria-invalid={!!form.formState.errors.email}
+                  />
+                </FieldContent>
+                {form.formState.errors.email && (
+                  <FieldError>{form.formState.errors.email.message}</FieldError>
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              </Field>
+
+              <Field>
+                <FieldLabel>Password</FieldLabel>
+                <FieldContent>
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    {...form.register('password')}
+                    aria-invalid={!!form.formState.errors.password}
+                  />
+                </FieldContent>
+                {form.formState.errors.password && (
+                  <FieldError>{form.formState.errors.password.message}</FieldError>
                 )}
-              />
+              </Field>
+
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? 'Creating account…' : 'Create account'}
               </Button>
-            </form>
-          </Form>
+            </FieldGroup>
+          </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link to="/login" className="text-primary underline underline-offset-4">

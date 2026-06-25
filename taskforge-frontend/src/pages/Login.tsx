@@ -10,7 +10,7 @@ import { loginSchema, type LoginInput } from '@/lib/schemas'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Field, FieldLabel, FieldContent, FieldError, FieldGroup } from '@/components/ui/field'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function LoginPage() {
@@ -43,45 +43,50 @@ export default function LoginPage() {
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FieldGroup className="gap-4">
+              <Field>
+                <FieldLabel>Email</FieldLabel>
+                <FieldContent>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    {...form.register('email')}
+                    aria-invalid={!!form.formState.errors.email}
+                  />
+                </FieldContent>
+                {form.formState.errors.email && (
+                  <FieldError>{form.formState.errors.email.message}</FieldError>
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              </Field>
+
+              <Field>
+                <FieldLabel>Password</FieldLabel>
+                <FieldContent>
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    {...form.register('password')}
+                    aria-invalid={!!form.formState.errors.password}
+                  />
+                </FieldContent>
+                {form.formState.errors.password && (
+                  <FieldError>{form.formState.errors.password.message}</FieldError>
                 )}
-              />
+              </Field>
+
               {error && (
                 <Alert className="border-destructive/50 bg-destructive/10">
                   <AlertCircle className="h-4 w-4 text-destructive" />
                   <AlertDescription className="text-destructive">{error}</AlertDescription>
                 </Alert>
               )}
+
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? 'Signing in…' : 'Sign in'}
               </Button>
-            </form>
-          </Form>
+            </FieldGroup>
+          </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             No account?{' '}
             <Link to="/register" className="text-primary underline underline-offset-4">
