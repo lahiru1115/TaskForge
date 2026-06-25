@@ -2,7 +2,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { useAuth } from '@/context/AuthContext'
 import api from '@/lib/api'
 import { registerSchema, type RegisterInput } from '@/lib/schemas'
 import { Button } from '@/components/ui/button'
@@ -11,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 
 export default function RegisterPage() {
-  const { login } = useAuth()
   const navigate = useNavigate()
 
   const form = useForm<RegisterInput>({
@@ -21,12 +19,16 @@ export default function RegisterPage() {
 
   async function onSubmit(values: RegisterInput) {
     try {
-      const { data } = await api.post('/api/auth/register', values)
-      login(data.user, data.token)
-      navigate('/')
+      await api.post('/api/auth/register', values)
+      toast.success('Account created! Redirecting to login...')
+      navigate('/login')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg ?? 'Registration failed')
+      if (msg?.includes('already')) {
+        form.setError('email', { message: 'Email already in use' })
+      } else {
+        toast.error(msg ?? 'Registration failed')
+      }
     }
   }
 
