@@ -45,7 +45,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value ?? ''} onValueChange={onChange}>
-      <SelectTrigger className="w-[140px]">
+      <SelectTrigger className="w-35">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -79,7 +79,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="relative flex-1 min-w-[180px]">
+      <div className="relative flex-1 min-w-45">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
         <Input
           className="pl-8"
