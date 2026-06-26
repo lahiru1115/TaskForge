@@ -69,11 +69,11 @@ export default function TasksPage() {
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-md border">
+          <div className="flex rounded-lg border border-border/50 bg-muted/30">
             <Button
               variant="ghost"
               size="icon-sm"
-              className={cn('rounded-r-none border-r', view === 'table' && 'bg-accent')}
+              className={cn('rounded-r-none border-r border-border/30 transition-all', view === 'table' && 'bg-background shadow-sm')}
               onClick={() => handleViewChange('table')}
               aria-label="Table view"
             >
@@ -82,7 +82,7 @@ export default function TasksPage() {
             <Button
               variant="ghost"
               size="icon-sm"
-              className={cn('rounded-l-none', view === 'card' && 'bg-accent')}
+              className={cn('rounded-l-none transition-all', view === 'card' && 'bg-background shadow-sm')}
               onClick={() => handleViewChange('card')}
               aria-label="Card view"
             >
@@ -109,17 +109,17 @@ export default function TasksPage() {
       )}
 
       {isError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-lg border border-destructive/40 bg-destructive/15 px-4 py-3 text-sm text-destructive">
           Failed to load tasks. Check your connection and try refreshing.
         </div>
       )}
 
       {!isLoading && !isError && tasks && tasks.length === 0 && (
         <div className="flex flex-col items-center gap-3 py-20 text-center">
-          <ClipboardList className="size-10 text-muted-foreground/40" />
+          <ClipboardList className="size-10 text-muted-foreground/30" />
           <p className="text-sm text-muted-foreground">
             No tasks found.{' '}
-            <span className="text-foreground">Create one to get started.</span>
+            <span className="text-foreground font-medium">Create one to get started.</span>
           </p>
         </div>
       )}
