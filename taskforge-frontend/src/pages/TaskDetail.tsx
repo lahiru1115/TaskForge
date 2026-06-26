@@ -1,24 +1,14 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Trash2, CalendarDays, User, Clock } from 'lucide-react'
+import { ArrowLeft, CalendarDays, User, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTask, useDeleteTask } from '@/hooks/useTasks'
 import { useAuth } from '@/context/AuthContext'
 import StatusBadge from '@/components/StatusBadge'
 import PriorityBadge from '@/components/PriorityBadge'
 import EditTaskDialog from '@/components/EditTaskDialog'
+import DeleteTaskDialog from '@/components/DeleteTaskDialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -119,31 +109,7 @@ export default function TaskDetailPage() {
               <EditTaskDialog task={task} canManage={canManage} />
             )}
             {canManage && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm">
-                    <Trash2 className="size-4" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete task?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. The task will be permanently deleted.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      variant="destructive"
-                      onClick={handleDelete}
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <DeleteTaskDialog onConfirm={handleDelete} />
             )}
           </div>
         </div>
