@@ -50,8 +50,8 @@ export default function TaskTable({ tasks }: { tasks: Task[] }) {
               </td>
               <td className="px-4 py-3">
                 {task.dueDate ? (
-                  <div className={`flex items-center gap-1 ${isOverdue(task) ? 'flex-col items-start text-destructive font-medium' : 'text-muted-foreground'}`}>
-                    <span className="flex items-center gap-1">
+                  <div className={isOverdue(task) ? 'text-destructive font-medium' : 'text-muted-foreground'}>
+                    <span className="flex items-center gap-1 whitespace-nowrap">
                       <CalendarDays className="size-3.5 shrink-0" />
                       {fmt(task.dueDate)}
                     </span>
