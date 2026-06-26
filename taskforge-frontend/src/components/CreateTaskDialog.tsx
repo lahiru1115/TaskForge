@@ -17,6 +17,10 @@ export default function CreateTaskDialog() {
   const [open, setOpen] = useState(false)
   const create = useCreateTask()
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen)
+  }
+
   async function handleSubmit(values: TaskInput) {
     const body = {
       ...values,
@@ -34,14 +38,14 @@ export default function CreateTaskDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="size-4" />
           New task
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onPointerDown={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>New task</DialogTitle>
         </DialogHeader>
