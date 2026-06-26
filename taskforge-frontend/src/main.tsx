@@ -8,6 +8,11 @@ import { queryClient } from '@/lib/queryClient'
 import App from './App'
 import './index.css'
 
+// Apply saved theme before first render to avoid flash
+if (localStorage.getItem('tf-theme') === 'dark') {
+  document.documentElement.classList.add('dark')
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>

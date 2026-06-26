@@ -1,12 +1,25 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, CheckSquare } from 'lucide-react'
+import { LogOut, CheckSquare, Sun, Moon } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+function useDarkMode() {
+  const [dark, setDark] = useState(() => localStorage.getItem('tf-theme') === 'dark')
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark)
+    localStorage.setItem('tf-theme', dark ? 'dark' : 'light')
+  }, [dark])
+
+  return [dark, () => setDark((d) => !d)] as const
+}
+
 export default function Navbar() {
   const { user, isAdmin, logout } = useAuth()
   const navigate = useNavigate()
+  const [dark, toggleDark] = useDarkMode()
 
   function handleLogout() {
     logout()
@@ -65,6 +78,9 @@ export default function Navbar() {
               )}
             </>
           )}
+          <Button variant="ghost" size="icon-sm" onClick={toggleDark} aria-label="Toggle theme">
+            {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </Button>
           <Button variant="ghost" size="icon-sm" onClick={handleLogout} aria-label="Log out">
             <LogOut />
           </Button>
