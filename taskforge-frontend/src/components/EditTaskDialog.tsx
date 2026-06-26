@@ -66,6 +66,7 @@ export default function EditTaskDialog({ task, canManage }: EditTaskDialogProps)
       </DialogTrigger>
       <DialogContent
         className="sm:max-w-md"
+        onOpenAutoFocus={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => {
           const target = e.target as Element
           if (target?.closest?.('[data-radix-popper-content-wrapper]')) {
