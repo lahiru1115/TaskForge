@@ -27,7 +27,7 @@ interface StatCardProps {
 
 function StatCard({ label, value, icon: Icon, color, loading }: StatCardProps) {
   return (
-    <Card className="gap-3 py-5">
+    <Card className="gap-3 py-5 hover:shadow-md hover:border-primary/20 transition-all duration-200">
       <CardHeader className="pb-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
