@@ -1,12 +1,13 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { ClipboardList, LayoutGrid, Table2 } from 'lucide-react'
 import { useTasks, type TaskFilters } from '@/hooks/useTasks'
 import FilterBar from '@/components/FilterBar'
 import TaskCard from '@/components/TaskCard'
 import TaskTable from '@/components/TaskTable'
+import TaskPagination from '@/components/TaskPagination'
 import CreateTaskDialog from '@/components/CreateTaskDialog'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 type ViewMode = 'table' | 'card'
@@ -19,23 +20,43 @@ const DEFAULT_FILTERS: TaskFilters = {
   sort: '-createdAt',
 }
 
-export default function TasksPage() {
-  const [view, setView] = useState<ViewMode>(() => {
-    const saved = localStorage.getItem('taskview-mode')
-    return (saved as ViewMode) || 'table'
-  })
-  const [filters, setFilters] = useState<TaskFilters>({ ...DEFAULT_FILTERS, page: 1, limit: 10 })
+const STORAGE_KEY = 'tf-tasks-state'
 
-  // Persist view mode to localStorage
-  const handleViewChange = (newView: ViewMode) => {
+function loadSavedState(): { view: ViewMode; filters: TaskFilters } {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '{}')
+    return {
+      view: saved.view ?? (localStorage.getItem('taskview-mode') as ViewMode) ?? 'table',
+      filters: saved.filters ?? { ...DEFAULT_FILTERS, page: 1, limit: 10 },
+    }
+  } catch {
+    return { view: 'table', filters: { ...DEFAULT_FILTERS, page: 1, limit: 10 } }
+  }
+}
+
+export default function TasksPage() {
+  const saved = loadSavedState()
+  const [view, setView] = useState<ViewMode>(saved.view)
+  const [filters, setFilters] = useState<TaskFilters>(saved.filters)
+
+  // Persist state to sessionStorage so navigating back restores page/filters
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ view, filters }))
+  }, [view, filters])
+
+  function handleViewChange(newView: ViewMode) {
     setView(newView)
     localStorage.setItem('taskview-mode', newView)
+    setFilters((prev) => ({ ...prev, page: 1, limit: newView === 'table' ? 10 : 9 }))
   }
 
-  // Reset to page 1 when filters change (excluding page/limit)
-  const handleFilterChange = useCallback((newFilters: TaskFilters) => {
+  function handleFilterChange(newFilters: TaskFilters) {
     setFilters({ ...newFilters, page: 1, limit: view === 'table' ? 10 : 9 })
-  }, [view])
+  }
+
+  function handlePageChange(page: number) {
+    setFilters((prev) => ({ ...prev, page }))
+  }
 
   const { data: response, isLoading, isError } = useTasks(filters)
   const tasks = response?.tasks ?? []
@@ -114,42 +135,7 @@ export default function TasksPage() {
           )}
 
           {pagination && pagination.pages > 1 && (
-            <div className="flex items-center justify-center gap-1 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFilters({ ...filters, page: Math.max(1, (filters.page ?? 1) - 1) })}
-                disabled={!pagination || pagination.page === 1}
-              >
-                Previous
-              </Button>
-
-              <div className="flex gap-1">
-                {Array.from({ length: Math.min(3, pagination.pages) }).map((_, i) => {
-                  const pageNum = pagination.page <= 2 ? i + 1 : pagination.page + i - 1
-                  if (pageNum > pagination.pages) return null
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={pageNum === pagination.page ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFilters({ ...filters, page: pageNum })}
-                    >
-                      {pageNum}
-                    </Button>
-                  )
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFilters({ ...filters, page: Math.min(pagination.pages, (filters.page ?? 1) + 1) })}
-                disabled={!pagination || pagination.page === pagination.pages}
-              >
-                Next
-              </Button>
-            </div>
+            <TaskPagination pagination={pagination} onPageChange={handlePageChange} />
           )}
         </>
       )}
