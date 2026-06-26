@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
 export interface UserOption {
-  _id: string
+  id: string
   name: string
   email: string
   role: string

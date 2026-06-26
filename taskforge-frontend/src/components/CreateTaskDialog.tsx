@@ -17,14 +17,10 @@ export default function CreateTaskDialog() {
   const [open, setOpen] = useState(false)
   const create = useCreateTask()
 
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen)
-  }
-
   async function handleSubmit(values: TaskInput) {
     const body = {
       ...values,
-      assignedTo: values.assignedTo === '_none' || values.assignedTo === '' ? undefined : values.assignedTo,
+      assignedTo: values.assignedTo === '' ? undefined : values.assignedTo,
       dueDate: values.dueDate || undefined,
     }
     try {
@@ -38,14 +34,22 @@ export default function CreateTaskDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="size-4" />
           New task
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md" onPointerDown={(e) => e.stopPropagation()}>
+      <DialogContent
+        className="sm:max-w-md"
+        onPointerDownOutside={(e) => {
+          const target = e.target as Element
+          if (target?.closest?.('[data-radix-popper-content-wrapper]')) {
+            e.preventDefault()
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>New task</DialogTitle>
         </DialogHeader>

@@ -43,8 +43,11 @@ function FilterSelect({
   options: { value: string; label: string }[]
   onChange: (v: string) => void
 }) {
+  // Map empty/undefined to '_all' so Radix always has a valid non-empty value
+  const selectValue = value || '_all'
+
   return (
-    <Select value={value ?? ''} onValueChange={onChange}>
+    <Select value={selectValue} onValueChange={(v) => onChange(v === '_all' ? '' : v)}>
       <SelectTrigger className="w-35">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
@@ -74,7 +77,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
   const { data: users = [] } = useUsers()
 
   function set(key: keyof TaskFilters, value: string) {
-    onChange({ ...filters, [key]: value === '_all' ? '' : value })
+    onChange({ ...filters, [key]: value })
   }
 
   return (
@@ -105,7 +108,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <FilterSelect
           value={filters.assignedTo}
           placeholder="Assignee"
-          options={users.map((u) => ({ value: u._id, label: u.name }))}
+          options={users.map((u) => ({ value: u.id, label: u.name }))}
           onChange={(v) => set('assignedTo', v)}
         />
       )}

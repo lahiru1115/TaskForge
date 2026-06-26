@@ -114,17 +114,20 @@ export default function TaskForm({
               <Field>
                 <FieldLabel>Assign to</FieldLabel>
                 <FieldContent>
-                  <Select value={form.watch('assignedTo') === '_none' ? '' : (form.watch('assignedTo') ?? '')} onValueChange={(value) => form.setValue('assignedTo', value === '' ? '_none' : value)}>
+                  <Select
+                    value={form.watch('assignedTo') || '_none'}
+                    onValueChange={(v) => form.setValue('assignedTo', v === '_none' ? '' : v as any)}
+                  >
                     <SelectTrigger aria-invalid={!!form.formState.errors.assignedTo}>
                       <SelectValue placeholder="Unassigned" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="_none">Unassigned</SelectItem>
                       {users.map((u) => (
-                        <SelectItem key={u._id} value={u._id}>
+                        <SelectItem key={u.id} value={u.id}>
                           {u.name}
                         </SelectItem>
                       ))}
-                      <SelectItem value="">Unassigned</SelectItem>
                     </SelectContent>
                   </Select>
                 </FieldContent>
