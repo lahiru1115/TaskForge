@@ -22,22 +22,24 @@ const DEFAULT_FILTERS: TaskFilters = {
 
 const STORAGE_KEY = 'tf-tasks-state'
 
-function loadSavedState(): { view: ViewMode; filters: TaskFilters } {
+function readStorage<T>(key: string, fallback: T): T {
   try {
-    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '{}')
-    return {
-      view: saved.view ?? (localStorage.getItem('taskview-mode') as ViewMode) ?? 'table',
-      filters: saved.filters ?? { ...DEFAULT_FILTERS, page: 1, limit: 10 },
-    }
+    const raw = sessionStorage.getItem(STORAGE_KEY)
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw)
+    return (parsed[key] as T) ?? fallback
   } catch {
-    return { view: 'table', filters: { ...DEFAULT_FILTERS, page: 1, limit: 10 } }
+    return fallback
   }
 }
 
 export default function TasksPage() {
-  const saved = loadSavedState()
-  const [view, setView] = useState<ViewMode>(saved.view)
-  const [filters, setFilters] = useState<TaskFilters>(saved.filters)
+  const [view, setView] = useState<ViewMode>(
+    () => readStorage('view', (localStorage.getItem('taskview-mode') as ViewMode) ?? 'table'),
+  )
+  const [filters, setFilters] = useState<TaskFilters>(
+    () => readStorage('filters', { ...DEFAULT_FILTERS, page: 1, limit: 10 }),
+  )
 
   // Persist state to sessionStorage so navigating back restores page/filters
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function TasksPage() {
   function handleViewChange(newView: ViewMode) {
     setView(newView)
     localStorage.setItem('taskview-mode', newView)
-    setFilters((prev) => ({ ...prev, page: 1, limit: newView === 'table' ? 10 : 9 }))
+    setFilters((prev) => ({ ...prev, limit: newView === 'table' ? 10 : 9 }))
   }
 
   function handleFilterChange(newFilters: TaskFilters) {
