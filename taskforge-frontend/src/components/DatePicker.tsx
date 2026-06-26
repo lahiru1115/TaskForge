@@ -21,9 +21,20 @@ export default function DatePicker({
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
 
-  const selectedDate = value ? new Date(value) : undefined
+  // Parse "YYYY-MM-DD" as local midnight to avoid timezone day-shift
+  const selectedDate = value
+    ? new Date(+value.slice(0, 4), +value.slice(5, 7) - 1, +value.slice(8, 10))
+    : undefined
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
+
+  function storeDate(date: Date) {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    onChange(`${y}-${m}-${d}`)
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -46,7 +57,7 @@ export default function DatePicker({
           selected={selectedDate}
           onSelect={(date) => {
             if (date) {
-              onChange(date.toISOString().split('T')[0])
+              storeDate(date)
               setOpen(false)
             }
           }}
