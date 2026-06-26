@@ -1,22 +1,13 @@
-import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Trash2, CalendarDays, User, Clock } from 'lucide-react'
+import { ArrowLeft, Trash2, CalendarDays, User, Clock } from 'lucide-react'
 import { toast } from 'sonner'
-import { useTask, useUpdateTask, useDeleteTask } from '@/hooks/useTasks'
+import { useTask, useDeleteTask } from '@/hooks/useTasks'
 import { useAuth } from '@/context/AuthContext'
-import type { TaskInput } from '@/lib/schemas'
 import StatusBadge from '@/components/StatusBadge'
 import PriorityBadge from '@/components/PriorityBadge'
-import TaskForm from '@/components/TaskForm'
+import EditTaskDialog from '@/components/EditTaskDialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,11 +28,6 @@ function fmt(iso: string) {
   })
 }
 
-function toDateInput(iso: string | undefined) {
-  if (!iso) return ''
-  return iso.slice(0, 10)
-}
-
 function MetaRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3">
@@ -58,10 +44,8 @@ export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
-  const [editOpen, setEditOpen] = useState(false)
 
   const { data: task, isLoading, isError } = useTask(id!)
-  const update = useUpdateTask(id!)
   const remove = useDeleteTask()
 
   if (isLoading) {
@@ -101,37 +85,6 @@ export default function TaskDetailPage() {
   const isAssignee =
     !canManage && task.assignedTo?._id === user?._id
 
-  const defaultFormValues: Partial<TaskInput> = {
-    title: task.title,
-    description: task.description ?? '',
-    priority: task.priority,
-    status: task.status,
-    dueDate: toDateInput(task.dueDate),
-    assignedTo: task.assignedTo?._id ?? '',
-  }
-
-  async function handleEdit(values: TaskInput) {
-    const body: Partial<TaskInput> = canManage
-      ? {
-          ...values,
-          assignedTo:
-            values.assignedTo === '_none' || values.assignedTo === ''
-              ? undefined
-              : values.assignedTo,
-          dueDate: values.dueDate || undefined,
-        }
-      : { status: values.status }
-
-    try {
-      await update.mutateAsync(body)
-      toast.success('Task updated')
-      setEditOpen(false)
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg ?? 'Failed to update task')
-    }
-  }
-
   async function handleDelete() {
     try {
       await remove.mutateAsync(id!)
@@ -163,25 +116,7 @@ export default function TaskDetailPage() {
           <h1 className="text-2xl font-semibold leading-snug">{task.title}</h1>
           <div className="flex shrink-0 items-center gap-2">
             {(canManage || isAssignee) && (
-              <Dialog open={editOpen} onOpenChange={setEditOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Pencil className="size-4" />
-                    Edit
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md" onPointerDown={(e) => e.stopPropagation()}>
-                  <DialogHeader>
-                    <DialogTitle>Edit task</DialogTitle>
-                  </DialogHeader>
-                  <TaskForm
-                    defaultValues={defaultFormValues}
-                    onSubmit={handleEdit}
-                    submitLabel="Save changes"
-                    statusOnly={!canManage}
-                  />
-                </DialogContent>
-              </Dialog>
+              <EditTaskDialog task={task} canManage={canManage} />
             )}
             {canManage && (
               <AlertDialog>
