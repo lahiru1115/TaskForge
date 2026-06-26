@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   ClipboardList,
   Circle,
@@ -11,11 +11,23 @@ import {
   ArrowUp,
   ArrowRight,
 } from 'lucide-react'
-import { useTaskStats } from '@/hooks/useTasks'
+import { useTaskStats, type TaskFilters } from '@/hooks/useTasks'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
+
+const TASKS_STORAGE_KEY = 'tf-tasks-state'
+const BASE_FILTERS: TaskFilters = {
+  search: '',
+  status: '',
+  priority: '',
+  assignedTo: '',
+  sort: '-createdAt',
+  page: 1,
+  limit: 10,
+}
 
 interface StatCardProps {
   label: string
@@ -23,11 +35,37 @@ interface StatCardProps {
   icon: React.ElementType
   color: string
   loading: boolean
+  filter?: Partial<TaskFilters>
 }
 
-function StatCard({ label, value, icon: Icon, color, loading }: StatCardProps) {
+function StatCard({ label, value, icon: Icon, color, loading, filter }: StatCardProps) {
+  const navigate = useNavigate()
+
+  function handleClick() {
+    sessionStorage.setItem(
+      TASKS_STORAGE_KEY,
+      JSON.stringify({ view: 'table', filters: { ...BASE_FILTERS, ...filter } }),
+    )
+    navigate('/tasks')
+  }
+
   return (
-    <Card className="gap-3 py-5 hover:shadow-md hover:border-primary/20 transition-all duration-200">
+    <Card
+      className={cn(
+        'gap-3 py-5 hover:shadow-md hover:border-primary/20 transition-all duration-200',
+        filter !== undefined && 'cursor-pointer',
+      )}
+      onClick={filter !== undefined ? handleClick : undefined}
+      role={filter !== undefined ? 'button' : undefined}
+      tabIndex={filter !== undefined ? 0 : undefined}
+      onKeyDown={
+        filter !== undefined
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') handleClick()
+            }
+          : undefined
+      }
+    >
       <CardHeader className="pb-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
@@ -53,24 +91,28 @@ const STATUS_CARDS = [
     label: 'Open',
     icon: Circle,
     color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+    filter: { status: 'open' } as Partial<TaskFilters>,
   },
   {
     key: 'in_progress',
     label: 'In Progress',
     icon: Clock,
     color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+    filter: { status: 'in_progress' } as Partial<TaskFilters>,
   },
   {
     key: 'testing',
     label: 'Testing',
     icon: FlaskConical,
     color: 'bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300',
+    filter: { status: 'testing' } as Partial<TaskFilters>,
   },
   {
     key: 'done',
     label: 'Done',
     icon: CheckCircle2,
     color: 'bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-300',
+    filter: { status: 'done' } as Partial<TaskFilters>,
   },
 ]
 
@@ -80,18 +122,21 @@ const PRIORITY_CARDS = [
     label: 'Low Priority',
     icon: ArrowDown,
     color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+    filter: { priority: 'low' } as Partial<TaskFilters>,
   },
   {
     key: 'medium',
     label: 'Medium Priority',
     icon: Minus,
     color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300',
+    filter: { priority: 'medium' } as Partial<TaskFilters>,
   },
   {
     key: 'high',
     label: 'High Priority',
     icon: ArrowUp,
     color: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300',
+    filter: { priority: 'high' } as Partial<TaskFilters>,
   },
 ]
 
@@ -135,6 +180,7 @@ export default function DashboardPage() {
             icon={ClipboardList}
             color="bg-primary/10 text-primary"
             loading={isLoading}
+            filter={{}}
           />
           <StatCard
             label="Overdue"
@@ -142,7 +188,33 @@ export default function DashboardPage() {
             icon={AlertTriangle}
             color="bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300"
             loading={isLoading}
+            filter={{ sort: 'dueDate' }}
           />
+        </div>
+
+        {/* Completion progress bar */}
+        <div className="mt-4 rounded-lg border bg-card px-5 py-4">
+          {isLoading ? (
+            <div className="grid gap-2">
+              <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+              <div className="h-2 w-full animate-pulse rounded-full bg-muted" />
+            </div>
+          ) : (() => {
+            const done = stats?.byStatus?.done ?? 0
+            const total = stats?.total ?? 0
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0
+            return (
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">
+                    {done} of {total} tasks completed
+                  </span>
+                  <span className="text-muted-foreground">{pct}%</span>
+                </div>
+                <Progress value={pct} />
+              </div>
+            )
+          })()}
         </div>
       </section>
 
@@ -152,7 +224,7 @@ export default function DashboardPage() {
           By Status
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STATUS_CARDS.map(({ key, label, icon, color }) => (
+          {STATUS_CARDS.map(({ key, label, icon, color, filter }) => (
             <StatCard
               key={key}
               label={label}
@@ -160,6 +232,7 @@ export default function DashboardPage() {
               icon={icon}
               color={color}
               loading={isLoading}
+              filter={filter}
             />
           ))}
         </div>
@@ -171,7 +244,7 @@ export default function DashboardPage() {
           By Priority
         </h2>
         <div className="grid gap-4 sm:grid-cols-3">
-          {PRIORITY_CARDS.map(({ key, label, icon, color }) => (
+          {PRIORITY_CARDS.map(({ key, label, icon, color, filter }) => (
             <StatCard
               key={key}
               label={label}
@@ -179,6 +252,7 @@ export default function DashboardPage() {
               icon={icon}
               color={color}
               loading={isLoading}
+              filter={filter}
             />
           ))}
         </div>
