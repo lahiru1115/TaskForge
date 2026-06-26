@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Field, FieldLabel, FieldContent, FieldError, FieldGroup } from '@/components/ui/field'
+import DatePicker from '@/components/DatePicker'
 
 interface TaskFormProps {
   defaultValues?: Partial<TaskInput>
@@ -98,10 +99,9 @@ export default function TaskForm({
               <Field>
                 <FieldLabel>Due date</FieldLabel>
                 <FieldContent>
-                  <Input
-                    type="date"
-                    {...form.register('dueDate')}
-                    aria-invalid={!!form.formState.errors.dueDate}
+                  <DatePicker
+                    value={form.watch('dueDate')}
+                    onChange={(value) => form.setValue('dueDate', value)}
                   />
                 </FieldContent>
                 {form.formState.errors.dueDate && (
@@ -114,17 +114,17 @@ export default function TaskForm({
               <Field>
                 <FieldLabel>Assign to</FieldLabel>
                 <FieldContent>
-                  <Select value={form.watch('assignedTo') ?? ''} onValueChange={(value) => form.setValue('assignedTo', value as any)}>
+                  <Select value={form.watch('assignedTo') === '_none' ? '' : (form.watch('assignedTo') ?? '')} onValueChange={(value) => form.setValue('assignedTo', value === '' ? '_none' : value)}>
                     <SelectTrigger aria-invalid={!!form.formState.errors.assignedTo}>
                       <SelectValue placeholder="Unassigned" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="_none">Unassigned</SelectItem>
                       {users.map((u) => (
                         <SelectItem key={u._id} value={u._id}>
                           {u.name}
                         </SelectItem>
                       ))}
+                      <SelectItem value="">Unassigned</SelectItem>
                     </SelectContent>
                   </Select>
                 </FieldContent>

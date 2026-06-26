@@ -27,17 +27,31 @@ export interface TaskFilters {
   priority?: string
   assignedTo?: string
   sort?: string
+  page?: number
+  limit?: number
+}
+
+export interface PaginationData {
+  page: number
+  limit: number
+  total: number
+  pages: number
+}
+
+export interface TasksResponse {
+  tasks: Task[]
+  pagination: PaginationData
 }
 
 export function useTasks(filters: TaskFilters = {}) {
-  return useQuery<Task[]>({
+  return useQuery<TasksResponse>({
     queryKey: ['tasks', filters],
     queryFn: async () => {
       const params = Object.fromEntries(
         Object.entries(filters).filter(([, v]) => v !== '' && v !== undefined),
       )
       const { data } = await api.get('/api/tasks', { params })
-      return data.tasks
+      return data
     },
   })
 }

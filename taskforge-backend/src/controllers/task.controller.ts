@@ -56,13 +56,29 @@ export async function listTasks(req: Request, res: Response) {
   if (q.assignedTo) filter.assignedTo = q.assignedTo;
 
   const sort = SORT_MAP[q.sort ?? '-createdAt'] ?? { createdAt: -1 };
+  const page = q.page ?? 1;
+  const limit = q.limit ?? 10;
+  const skip = (page - 1) * limit;
 
-  const tasks = await Task.find(filter)
-    .sort(sort)
-    .populate('createdBy', 'name email')
-    .populate('assignedTo', 'name email');
+  const [tasks, total] = await Promise.all([
+    Task.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .populate('createdBy', 'name email')
+      .populate('assignedTo', 'name email'),
+    Task.countDocuments(filter),
+  ]);
 
-  res.json({ tasks });
+  res.json({
+    tasks,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit),
+    },
+  });
 }
 
 export async function getTaskStats(req: Request, res: Response) {

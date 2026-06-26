@@ -170,7 +170,7 @@ export default function TaskDetailPage() {
                     Edit
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md" onPointerDown={(e) => e.stopPropagation()}>
                   <DialogHeader>
                     <DialogTitle>Edit task</DialogTitle>
                   </DialogHeader>

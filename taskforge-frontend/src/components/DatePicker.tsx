@@ -20,8 +20,10 @@ export default function DatePicker({
   disabled = false,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
-  
+
   const selectedDate = value ? new Date(value) : undefined
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -48,7 +50,7 @@ export default function DatePicker({
               setOpen(false)
             }
           }}
-          disabled={disabled}
+          disabled={(date) => date < today}
         />
       </PopoverContent>
     </Popover>
