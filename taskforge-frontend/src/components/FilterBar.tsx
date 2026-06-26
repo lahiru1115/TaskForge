@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { useUsers } from '@/hooks/useUsers'
 import { useAuth } from '@/context/AuthContext'
+import { cn } from '@/lib/utils'
 import type { TaskFilters } from '@/hooks/useTasks'
 
 interface FilterBarProps {
@@ -48,7 +49,7 @@ function FilterSelect({
 
   return (
     <Select value={selectValue} onValueChange={(v) => onChange(v === '_all' ? '' : v)}>
-      <SelectTrigger className="w-35">
+      <SelectTrigger className={cn('w-35', selectValue === '_all' && 'text-muted-foreground')}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
