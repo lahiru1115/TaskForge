@@ -100,6 +100,36 @@ export function useDeleteTask() {
   })
 }
 
+export function useMoveTaskStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: Task['status'] }) => {
+      const { data } = await api.patch(`/api/tasks/${id}`, { status })
+      return data.task as Task
+    },
+    onMutate: async ({ id, status }) => {
+      await qc.cancelQueries({ queryKey: ['tasks'] })
+      const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['tasks'] })
+      qc.setQueriesData<TasksResponse>({ queryKey: ['tasks'] }, (old) => {
+        if (!old?.tasks) return old
+        return {
+          ...old,
+          tasks: old.tasks.map((t) => (t._id === id ? { ...t, status } : t)),
+        }
+      })
+      return { snapshot }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.snapshot) {
+        for (const [key, data] of ctx.snapshot) {
+          qc.setQueryData(key, data)
+        }
+      }
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+  })
+}
+
 export interface TaskStats {
   total: number
   overdue: number
