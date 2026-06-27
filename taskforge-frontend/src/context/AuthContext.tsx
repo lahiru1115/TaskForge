@@ -12,6 +12,7 @@ interface AuthContextValue {
   token: string | null
   login: (user: AuthUser, token: string) => void
   logout: () => void
+  updateUser: (user: AuthUser) => void
   isAdmin: boolean
 }
 
@@ -43,8 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ user: null, token: null })
   }, [])
 
+  const updateUser = useCallback((u: AuthUser) => {
+    localStorage.setItem('tf_user', JSON.stringify(u))
+    setState((prev) => ({ ...prev, user: u }))
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   )
