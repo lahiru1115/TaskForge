@@ -6,6 +6,7 @@ import RegisterPage from '@/pages/Register'
 import DashboardPage from '@/pages/Dashboard'
 import TasksPage from '@/pages/Tasks'
 import TaskDetailPage from '@/pages/TaskDetail'
+import ProfilePage from '@/pages/Profile'
 
 function AppLayout() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/tasks/:id" element={<TaskDetailPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
 

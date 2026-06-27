@@ -68,9 +68,12 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           {user && (
             <>
-              <span className="hidden text-sm text-muted-foreground sm:inline">
+              <Link
+                to="/profile"
+                className="hidden text-sm text-muted-foreground hover:text-foreground transition-colors sm:inline"
+              >
                 {user.name}
-              </span>
+              </Link>
               {isAdmin && (
                 <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
                   Admin
