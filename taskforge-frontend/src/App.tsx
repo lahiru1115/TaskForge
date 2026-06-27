@@ -7,12 +7,13 @@ import DashboardPage from '@/pages/Dashboard'
 import TasksPage from '@/pages/Tasks'
 import TaskDetailPage from '@/pages/TaskDetail'
 import ProfilePage from '@/pages/Profile'
+import BoardPage from '@/pages/Board'
 
 function AppLayout() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      <main className="mx-auto max-w-7xl px-4 py-6">
         <Outlet />
       </main>
     </>
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/tasks/:id" element={<TaskDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/board" element={<BoardPage />} />
         </Route>
       </Route>
 
