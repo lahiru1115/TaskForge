@@ -1,9 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import api from '@/lib/api'
 import ProfileAvatar from '@/components/profile/ProfileAvatar'
 import ProfileDetails from '@/components/profile/ProfileDetails'
 import ProfilePassword from '@/components/profile/ProfilePassword'
+import { Button } from '@/components/ui/button'
 
 interface MeResponse {
   _id: string
@@ -16,6 +19,7 @@ interface MeResponse {
 export default function ProfilePage() {
   const { user, updateUser } = useAuth()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const { data: me, isLoading } = useQuery<MeResponse>({
     queryKey: ['me'],
@@ -29,9 +33,13 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-lg grid gap-6">
-      <div>
+      <div className="grid gap-1">
+        <Button variant="ghost" size="sm" className="w-fit -ml-2" onClick={() => navigate(-1)}>
+          <ArrowLeft className="size-4" />
+          Back
+        </Button>
         <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <p className="text-sm text-muted-foreground mt-1">Your account details.</p>
+        <p className="text-sm text-muted-foreground">Your account details.</p>
       </div>
 
       <ProfileAvatar />
