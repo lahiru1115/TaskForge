@@ -79,7 +79,7 @@ export default function TaskDetailPage() {
     try {
       await remove.mutateAsync(id!)
       toast.success('Task deleted')
-      navigate('/tasks')
+      navigate(-1)
     } catch {
       toast.error('Failed to delete task')
     }
@@ -92,11 +92,9 @@ export default function TaskDetailPage() {
     <div className="mx-auto max-w-2xl grid gap-6">
       {/* Back */}
       <div>
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/tasks">
-            <ArrowLeft className="size-4" />
-            Tasks
-          </Link>
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+          <ArrowLeft className="size-4" />
+          Back
         </Button>
       </div>
 
