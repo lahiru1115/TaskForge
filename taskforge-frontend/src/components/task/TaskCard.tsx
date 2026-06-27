@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import { CalendarDays, User } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import StatusBadge from '@/components/StatusBadge'
-import PriorityBadge from '@/components/PriorityBadge'
+import StatusBadge from '@/components/shared/StatusBadge'
+import PriorityBadge from '@/components/shared/PriorityBadge'
 import type { Task } from '@/hooks/useTasks'
 
 function fmt(iso: string) {

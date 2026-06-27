@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import TaskForm from '@/components/TaskForm'
+import TaskForm from '@/components/task/TaskForm'
 import type { TaskInput } from '@/lib/schemas'
 
 export default function CreateTaskDialog() {

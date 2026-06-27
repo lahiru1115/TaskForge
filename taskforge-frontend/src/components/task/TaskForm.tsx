@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Field, FieldLabel, FieldContent, FieldError, FieldGroup } from '@/components/ui/field'
-import DatePicker from '@/components/DatePicker'
+import DatePicker from '@/components/shared/DatePicker'
 
 interface TaskFormProps {
   defaultValues?: Partial<TaskInput>

@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import api from '@/lib/api'
-import ProfileAvatar from '@/components/ProfileAvatar'
-import ProfileDetails from '@/components/ProfileDetails'
-import ProfilePassword from '@/components/ProfilePassword'
+import ProfileAvatar from '@/components/profile/ProfileAvatar'
+import ProfileDetails from '@/components/profile/ProfileDetails'
+import ProfilePassword from '@/components/profile/ProfilePassword'
 
 interface MeResponse {
   _id: string
