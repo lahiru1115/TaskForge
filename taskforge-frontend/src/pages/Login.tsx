@@ -18,25 +18,47 @@ const features = [
   { icon: Zap, text: 'Track progress from open to done in real-time' },
 ]
 
+const DEMO_ACCOUNTS = [
+  { label: 'Login as Admin', email: 'admin@taskforge.dev', password: 'admin123' },
+  { label: 'Login as User', email: 'jane@taskforge.dev', password: 'user1234' },
+]
+
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
+  const [demoLoading, setDemoLoading] = useState<string | null>(null)
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   })
 
+  async function doLogin(email: string, password: string) {
+    const { data } = await api.post('/api/auth/login', { email, password })
+    login(data.user, data.token)
+    navigate('/')
+  }
+
   async function onSubmit(values: LoginInput) {
     setError(null)
     try {
-      const { data } = await api.post('/api/auth/login', values)
-      login(data.user, data.token)
-      navigate('/')
+      await doLogin(values.email, values.password)
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       msg ? setError(msg) : toast.error('Login failed')
+    }
+  }
+
+  async function onDemoLogin(email: string, password: string) {
+    setDemoLoading(email)
+    setError(null)
+    try {
+      await doLogin(email, password)
+    } catch {
+      toast.error('Demo login failed. Make sure the backend is seeded.')
+    } finally {
+      setDemoLoading(null)
     }
   }
 
@@ -144,11 +166,33 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || !!demoLoading}>
                 {form.formState.isSubmitting ? 'Signing in…' : 'Sign in'}
               </Button>
             </FieldGroup>
           </form>
+
+          <div className="space-y-3">
+            <div className="relative flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">or try a demo</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {DEMO_ACCOUNTS.map(({ label, email, password }) => (
+                <Button
+                  key={email}
+                  type="button"
+                  variant="outline"
+                  className="w-full text-xs"
+                  disabled={!!demoLoading || form.formState.isSubmitting}
+                  onClick={() => onDemoLogin(email, password)}
+                >
+                  {demoLoading === email ? 'Signing in…' : label}
+                </Button>
+              ))}
+            </div>
+          </div>
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{' '}
