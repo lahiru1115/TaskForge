@@ -15,7 +15,7 @@ function isOverdue(task: Task) {
 
 export default function TaskCard({ task }: { task: Task }) {
   return (
-    <Link to={`/tasks/${task._id}`} className="group block">
+    <Link to={`/tasks/${task._id}`} state={{ from: '/tasks' }} className="group block">
       <Card className="h-full transition-shadow group-hover:shadow-md">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">

@@ -34,6 +34,7 @@ export default function TaskTable({ tasks }: { tasks: Task[] }) {
               <td className="px-4 py-3">
                 <Link
                   to={`/tasks/${task._id}`}
+                  state={{ from: '/tasks' }}
                   className="font-medium text-foreground hover:underline underline-offset-2"
                 >
                   {task.title}

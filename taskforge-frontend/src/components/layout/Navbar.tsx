@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { LogOut, CheckSquare, Sun, Moon } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+
+const NAV_LINK_CLASS = 'rounded-md px-3 py-1.5 text-sm font-medium transition-colors'
+const ACTIVE_CLASS = 'bg-accent text-accent-foreground'
+const INACTIVE_CLASS = 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => localStorage.getItem('tf-theme') === 'dark')
@@ -19,7 +23,19 @@ function useDarkMode() {
 export default function Navbar() {
   const { user, isAdmin, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [dark, toggleDark] = useDarkMode()
+
+  // On task detail pages, highlight whichever list view the user came from
+  const isTaskDetail = /^\/tasks\/[^/]+$/.test(location.pathname)
+  const referrer = (location.state as { from?: string } | null)?.from
+
+  function navClass(path: string) {
+    return ({ isActive: routerActive }: { isActive: boolean }) => {
+      const active = isTaskDetail ? referrer === path : routerActive
+      return cn(NAV_LINK_CLASS, active ? ACTIVE_CLASS : INACTIVE_CLASS)
+    }
+  }
 
   function handleLogout() {
     logout()
@@ -28,39 +44,21 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2 font-semibold text-foreground">
             <CheckSquare className="size-5" />
             TaskForge
           </Link>
           <nav className="flex items-center gap-1">
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) =>
-                cn(
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-accent text-accent-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                )
-              }
-            >
+            <NavLink to="/" end className={navClass('/')}>
               Dashboard
             </NavLink>
-            <NavLink
-              to="/tasks"
-              className={({ isActive }) =>
-                cn(
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-accent text-accent-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                )
-              }
-            >
+            <NavLink to="/tasks" end className={navClass('/tasks')}>
               Tasks
+            </NavLink>
+            <NavLink to="/board" end className={navClass('/board')}>
+              Board
             </NavLink>
           </nav>
         </div>
