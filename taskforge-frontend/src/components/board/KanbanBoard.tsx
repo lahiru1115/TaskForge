@@ -114,11 +114,13 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
         // overId is a column id (empty column or column header) — append to end
         insertIdx = destTasks.length
       } else {
-        // Insert before or after the over card based on which half the dragged card is in
+        // Use the TOP of the dragged overlay (closest to cursor) vs the over card's midpoint.
+        // Using the overlay center overshoots — the cursor is near the top of the card
+        // but the center is already below the target midpoint, causing off-by-one inserts.
         const overRect = over.rect
         const translated = active.rect.current.translated
         const isBelowMidpoint = translated
-          ? translated.top + translated.height / 2 > overRect.top + overRect.height / 2
+          ? translated.top > overRect.top + overRect.height / 2
           : false
         insertIdx = isBelowMidpoint ? overIdx + 1 : overIdx
       }
