@@ -7,6 +7,7 @@ import StatusBadge from '@/components/shared/StatusBadge'
 import PriorityBadge from '@/components/shared/PriorityBadge'
 import EditTaskDialog from '@/components/task/EditTaskDialog'
 import DeleteTaskDialog from '@/components/task/DeleteTaskDialog'
+import ActivityFeed from '@/components/task/ActivityFeed'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -157,6 +158,12 @@ export default function TaskDetailPage() {
           label="Last updated"
           value={fmt(task.updatedAt)}
         />
+      </div>
+
+      {/* Activity */}
+      <div className="grid gap-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Activity</h2>
+        <ActivityFeed taskId={id!} />
       </div>
     </div>
   )

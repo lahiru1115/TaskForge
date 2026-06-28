@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { generateKeyBetween, generateNKeysBetween } from 'fractional-indexing';
 import { Task, ITask, TASK_STATUSES, TaskPriority, TaskStatus } from '../models/Task';
+import { Activity } from '../models/Activity';
 import { ApiError } from '../utils/ApiError';
 import { IUser } from '../models/User';
 import {
@@ -136,6 +137,14 @@ export async function createTask(req: Request, res: Response) {
     { path: 'createdBy', select: 'name email' },
     { path: 'assignedTo', select: 'name email' },
   ]);
+
+  await Activity.create({
+    task: task._id,
+    actor: req.user!._id,
+    actorName: req.user!.name,
+    type: 'created',
+  });
+
   res.status(201).json({ task });
 }
 
@@ -168,6 +177,14 @@ export async function updateTask(req: Request, res: Response) {
     }
   }
 
+  // Capture old values before mutation for activity log
+  const oldStatus = task.status;
+  const oldPriority = task.priority;
+  const oldAssignedTo = task.assignedTo?.toString() ?? null;
+  const oldTitle = task.title;
+  const oldDescription = task.description;
+  const oldDueDate = task.dueDate?.toISOString().slice(0, 10) ?? null;
+
   Object.assign(task, body);
   await task.save();
 
@@ -175,6 +192,43 @@ export async function updateTask(req: Request, res: Response) {
     { path: 'createdBy', select: 'name email' },
     { path: 'assignedTo', select: 'name email' },
   ]);
+
+  // Append activity records for each meaningful change (rank excluded)
+  const actorId = req.user!._id;
+  const actorName = req.user!.name;
+  const acts: Parameters<typeof Activity.create>[0][] = [];
+
+  if (body.status && body.status !== oldStatus) {
+    acts.push({ task: task._id, actor: actorId, actorName, type: 'status_changed', from: oldStatus, to: body.status });
+  }
+  if (body.priority && body.priority !== oldPriority) {
+    acts.push({ task: task._id, actor: actorId, actorName, type: 'priority_changed', from: oldPriority, to: body.priority });
+  }
+  if ('assignedTo' in body) {
+    const newAssignedTo = body.assignedTo ?? null;
+    if (newAssignedTo !== oldAssignedTo) {
+      if (newAssignedTo) {
+        const assigneeName = (task.assignedTo as unknown as { name: string } | null)?.name ?? newAssignedTo;
+        acts.push({ task: task._id, actor: actorId, actorName, type: 'assigned', to: assigneeName });
+      } else {
+        acts.push({ task: task._id, actor: actorId, actorName, type: 'unassigned' });
+      }
+    }
+  }
+  if (body.title && body.title !== oldTitle) {
+    acts.push({ task: task._id, actor: actorId, actorName, type: 'edited', field: 'title' });
+  }
+  if ('description' in body && body.description !== oldDescription) {
+    acts.push({ task: task._id, actor: actorId, actorName, type: 'edited', field: 'description' });
+  }
+  if ('dueDate' in body) {
+    const newDueDate = body.dueDate ? new Date(body.dueDate as unknown as string).toISOString().slice(0, 10) : null;
+    if (newDueDate !== oldDueDate) {
+      acts.push({ task: task._id, actor: actorId, actorName, type: 'edited', field: 'due date' });
+    }
+  }
+
+  if (acts.length > 0) await Activity.insertMany(acts);
 
   res.json({ task });
 }
@@ -189,4 +243,19 @@ export async function deleteTask(req: Request, res: Response) {
 
   await task.deleteOne();
   res.status(204).send();
+}
+
+export async function getTaskActivity(req: Request, res: Response) {
+  const { id } = req.params;
+  const user = req.user!;
+
+  const task = await Task.findById(id).lean();
+  if (!task || !canView(task as unknown as ITask, user)) throw ApiError.notFound('Task not found');
+
+  const activities = await Activity.find({ task: id })
+    .sort({ createdAt: -1 })
+    .limit(100)
+    .lean();
+
+  res.json({ activities });
 }

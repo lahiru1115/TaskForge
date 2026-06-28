@@ -15,6 +15,7 @@ import {
   getTask,
   updateTask,
   deleteTask,
+  getTaskActivity,
 } from '../controllers/task.controller';
 
 const router = Router();
@@ -31,5 +32,6 @@ router.patch(
   asyncHandler(updateTask)
 );
 router.delete('/:id', validate({ params: idParamSchema }), asyncHandler(deleteTask));
+router.get('/:id/activity', validate({ params: idParamSchema }), asyncHandler(getTaskActivity));
 
 export default router;

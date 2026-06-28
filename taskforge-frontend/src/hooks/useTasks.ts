@@ -86,7 +86,10 @@ export function useUpdateTask(id: string) {
       const { data } = await api.patch(`/api/tasks/${id}`, body)
       return data.task as Task
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      qc.invalidateQueries({ queryKey: ['activity', id] })
+    },
   })
 }
 
