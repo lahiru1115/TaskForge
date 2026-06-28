@@ -103,9 +103,15 @@ export default function TaskDetailPage() {
         </Button>
       </div>
 
-      {/* Title + badges */}
+      {/* Title + badges + actions */}
       <div className="grid gap-2">
-        <h1 className="text-2xl font-semibold leading-snug">{task.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-2xl font-semibold leading-snug">{task.title}</h1>
+          <div className="flex shrink-0 items-center gap-2">
+            {(canManage || isAssignee) && <EditTaskDialog task={task} canManage={canManage} />}
+            {canManage && <DeleteTaskDialog onConfirm={handleDelete} />}
+          </div>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={task.status} />
           <PriorityBadge priority={task.priority} />
@@ -136,14 +142,6 @@ export default function TaskDetailPage() {
 
         {/* Sidebar — metadata + actions */}
         <div className="grid gap-3">
-          {/* Actions */}
-          {(canManage || isAssignee) && (
-            <div className="flex gap-2">
-              <EditTaskDialog task={task} canManage={canManage} />
-              {canManage && <DeleteTaskDialog onConfirm={handleDelete} />}
-            </div>
-          )}
-
           {/* Metadata card */}
           <div className="rounded-lg border bg-card px-4">
             <SidebarRow
