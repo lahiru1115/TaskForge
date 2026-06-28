@@ -80,7 +80,7 @@ export default function TaskForm({
               <Field>
                 <FieldLabel>Priority</FieldLabel>
                 <FieldContent>
-                  <Select value={form.watch('priority')} onValueChange={(value) => form.setValue('priority', value as any)}>
+                  <Select value={form.watch('priority')} onValueChange={(value: string) => form.setValue('priority', value as TaskInput['priority'])}>
                     <SelectTrigger aria-invalid={!!form.formState.errors.priority}>
                       <SelectValue />
                     </SelectTrigger>
@@ -116,7 +116,7 @@ export default function TaskForm({
                 <FieldContent>
                   <Select
                     value={form.watch('assignedTo') || '_none'}
-                    onValueChange={(v) => form.setValue('assignedTo', v === '_none' ? '' : v as any)}
+                    onValueChange={(v: string) => form.setValue('assignedTo', v === '_none' ? '' : (v as string))}
                   >
                     <SelectTrigger aria-invalid={!!form.formState.errors.assignedTo}>
                       <SelectValue placeholder="Unassigned" />
@@ -142,7 +142,7 @@ export default function TaskForm({
         <Field>
           <FieldLabel>Status</FieldLabel>
           <FieldContent>
-            <Select value={form.watch('status')} onValueChange={(value) => form.setValue('status', value as any)}>
+            <Select value={form.watch('status')} onValueChange={(value: string) => form.setValue('status', value as TaskInput['status'])}>
               <SelectTrigger aria-invalid={!!form.formState.errors.status}>
                 <SelectValue />
               </SelectTrigger>
