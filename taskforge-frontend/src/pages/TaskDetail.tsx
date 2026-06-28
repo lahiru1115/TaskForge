@@ -103,8 +103,14 @@ export default function TaskDetailPage() {
         </Button>
       </div>
 
-      {/* Title */}
-      <h1 className="text-2xl font-semibold leading-snug">{task.title}</h1>
+      {/* Title + badges */}
+      <div className="grid gap-2">
+        <h1 className="text-2xl font-semibold leading-snug">{task.title}</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={task.status} />
+          <PriorityBadge priority={task.priority} />
+        </div>
+      </div>
 
       {/* Two-column body */}
       <div className="grid gap-6 lg:grid-cols-[1fr_260px] items-start">
@@ -140,16 +146,6 @@ export default function TaskDetailPage() {
 
           {/* Metadata card */}
           <div className="rounded-lg border bg-card px-4">
-            <SidebarRow
-              icon={<span className="size-4 inline-flex items-center" />}
-              label="Status"
-              value={<StatusBadge status={task.status} />}
-            />
-            <SidebarRow
-              icon={<span className="size-4 inline-flex items-center" />}
-              label="Priority"
-              value={<PriorityBadge priority={task.priority} />}
-            />
             <SidebarRow
               icon={<User className="size-4" />}
               label="Created by"
