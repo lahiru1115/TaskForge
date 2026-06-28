@@ -19,8 +19,10 @@ const features = [
 ]
 
 const DEMO_ACCOUNTS = [
-  { label: 'Login as Admin', email: 'admin@taskforge.dev', password: 'admin123' },
-  { label: 'Login as User', email: 'jane@taskforge.dev', password: 'user1234' },
+  { label: 'Admin', email: 'admin@taskforge.com', password: 'admin123', role: 'admin' },
+  { label: 'Jane Doe', email: 'jane@taskforge.com', password: 'user1234', role: 'user' },
+  { label: 'John Smith', email: 'john@taskforge.com', password: 'user1234', role: 'user' },
+  { label: 'Sarah Johnson', email: 'sarah@taskforge.com', password: 'user1234', role: 'user' },
 ]
 
 export default function LoginPage() {
@@ -175,20 +177,29 @@ export default function LoginPage() {
           <div className="space-y-3">
             <div className="relative flex items-center gap-3">
               <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground">or try a demo</span>
+              <span className="text-xs text-muted-foreground">or try a demo account</span>
               <div className="h-px flex-1 bg-border" />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map(({ label, email, password }) => (
+              {DEMO_ACCOUNTS.map(({ label, email, password, role }) => (
                 <Button
                   key={email}
                   type="button"
                   variant="outline"
-                  className="w-full text-xs"
+                  className="w-full h-auto flex-col gap-0.5 py-2 text-xs"
                   disabled={!!demoLoading || form.formState.isSubmitting}
                   onClick={() => onDemoLogin(email, password)}
                 >
-                  {demoLoading === email ? 'Signing in…' : label}
+                  {demoLoading === email ? (
+                    <span>Signing in…</span>
+                  ) : (
+                    <>
+                      <span className="font-medium">{label}</span>
+                      <span className={role === 'admin' ? 'text-violet-500' : 'text-muted-foreground'}>
+                        {role}
+                      </span>
+                    </>
+                  )}
                 </Button>
               ))}
             </div>

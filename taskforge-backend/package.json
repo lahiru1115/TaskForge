@@ -7,8 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "seed": "tsx src/seed.ts",
-    "migrate:ranks": "tsx src/scripts/backfill-ranks.ts"
+    "seed": "tsx src/seed.ts"
   },
   "keywords": [],
   "author": "",
