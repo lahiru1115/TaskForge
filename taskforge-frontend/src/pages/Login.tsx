@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   async function doLogin(email: string, password: string) {
     const { data } = await api.post('/api/auth/login', { email, password })
-    login(data.user, data.token)
+    login(data.user)
     navigate('/')
   }
 

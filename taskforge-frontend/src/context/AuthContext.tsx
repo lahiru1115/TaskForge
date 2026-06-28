@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import api from '@/lib/api'
 
 export interface AuthUser {
   _id: string
@@ -9,8 +10,7 @@ export interface AuthUser {
 
 interface AuthContextValue {
   user: AuthUser | null
-  token: string | null
-  login: (user: AuthUser, token: string) => void
+  login: (user: AuthUser) => void
   logout: () => void
   updateUser: (user: AuthUser) => void
   isAdmin: boolean
@@ -18,39 +18,40 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-function loadFromStorage(): { user: AuthUser | null; token: string | null } {
+function loadUser(): AuthUser | null {
   try {
-    const token = localStorage.getItem('tf_token')
     const raw = localStorage.getItem('tf_user')
-    const user = raw ? (JSON.parse(raw) as AuthUser) : null
-    return { user, token }
+    return raw ? (JSON.parse(raw) as AuthUser) : null
   } catch {
-    return { user: null, token: null }
+    return null
   }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [{ user, token }, setState] = useState(loadFromStorage)
+  const [user, setUser] = useState<AuthUser | null>(loadUser)
 
-  const login = useCallback((u: AuthUser, t: string) => {
-    localStorage.setItem('tf_token', t)
+  const login = useCallback((u: AuthUser) => {
     localStorage.setItem('tf_user', JSON.stringify(u))
-    setState({ user: u, token: t })
+    setUser(u)
   }, [])
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('tf_token')
+  const logout = useCallback(async () => {
+    try {
+      await api.post('/api/auth/logout')
+    } catch {
+      // best-effort — clear client state regardless
+    }
     localStorage.removeItem('tf_user')
-    setState({ user: null, token: null })
+    setUser(null)
   }, [])
 
   const updateUser = useCallback((u: AuthUser) => {
     localStorage.setItem('tf_user', JSON.stringify(u))
-    setState((prev) => ({ ...prev, user: u }))
+    setUser(u)
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, isAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   )

@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { CheckSquare, Users, Zap, LayoutDashboard } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 import api from '@/lib/api'
 import { registerSchema, type RegisterInput } from '@/lib/schemas'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ const features = [
 ]
 
 export default function RegisterPage() {
+  const { login } = useAuth()
   const navigate = useNavigate()
 
   const form = useForm<RegisterInput>({
@@ -25,9 +27,10 @@ export default function RegisterPage() {
 
   async function onSubmit(values: RegisterInput) {
     try {
-      await api.post('/api/auth/register', values)
-      toast.success('Account created!')
-      navigate('/login')
+      const { data } = await api.post('/api/auth/register', values)
+      login(data.user)
+      toast.success('Welcome to TaskForge!')
+      navigate('/')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       if (msg?.includes('already')) {
