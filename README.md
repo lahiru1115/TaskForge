@@ -101,13 +101,28 @@ API: http://localhost:4000
 
 ---
 
-## Seed demo data
+## Database
 
-Populates 4 users and 50 sample tasks across all status columns (clears existing data first):
+### Seed demo data
+
+Populates 4 users and 50 sample tasks across all status columns with activity logs (clears existing data first):
 
 ```bash
 cd taskforge-backend
 npm run seed
+```
+
+### Reset collections
+
+Clear specific collections or the entire database:
+
+```bash
+# Reset all collections
+npm run reset:db -- all
+
+# Reset specific collections
+npm run reset:db -- User Task Activity
+npm run reset:db -- Task
 ```
 
 ### Demo credentials

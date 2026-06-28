@@ -2,11 +2,17 @@ import { generateNKeysBetween } from 'fractional-indexing';
 import { connectDB, disconnectDB } from './config/db';
 import { User, hashPassword } from './models/User';
 import { Task, TASK_STATUSES, type TaskStatus, type TaskPriority } from './models/Task';
+import { Activity, type ActivityType } from './models/Activity';
 
 const DAY = 24 * 60 * 60 * 1000;
+const HOUR = 60 * 60 * 1000;
 
 function daysFromNow(n: number) {
   return new Date(Date.now() + n * DAY);
+}
+
+function ago(hours: number) {
+  return new Date(Date.now() - hours * HOUR);
 }
 
 async function seed() {
@@ -14,6 +20,7 @@ async function seed() {
 
   await User.deleteMany({});
   await Task.deleteMany({});
+  await Activity.deleteMany({});
 
   const [adminHash, janeHash, johnHash, sarahHash] = await Promise.all([
     hashPassword('admin123'),
@@ -358,9 +365,114 @@ async function seed() {
     });
   }
 
-  await Task.insertMany(tasks);
+  const insertedTasks = await Task.insertMany(tasks);
 
-  console.log('✓ Seed complete — 4 users, 50 tasks created');
+  // --- Activity logs ---
+
+  const nameMap: Record<string, string> = {
+    [admin._id.toString()]: 'Admin User',
+    [jane._id.toString()]: 'Jane Doe',
+    [john._id.toString()]: 'John Smith',
+    [sarah._id.toString()]: 'Sarah Johnson',
+  };
+
+  function actorName(id: UserId): string {
+    return nameMap[id.toString()] ?? 'Unknown';
+  }
+
+  type ActivityDoc = {
+    task: UserId;
+    actor: UserId;
+    actorName: string;
+    type: ActivityType;
+    field?: string;
+    from?: string;
+    to?: string;
+    createdAt: Date;
+  };
+
+  const activityDocs: ActivityDoc[] = [];
+
+  function push(doc: ActivityDoc) {
+    activityDocs.push(doc);
+  }
+
+  insertedTasks.forEach((task, i) => {
+    const s = tasks[i];
+    const creator = s.createdBy as UserId;
+    const assignee = (s.assignedTo ?? null) as UserId | null;
+
+    if (s.status === 'open') {
+      // Tasks without an assignee are brand-new — leave them with no activity
+      // so the "No activity yet." empty state is visible in the UI.
+      if (!assignee) return;
+      const t0 = ago((3 + (i % 10)) * 24);
+      push({ task: task._id, actor: creator, actorName: actorName(creator), type: 'created', createdAt: t0 });
+      if (i % 3 === 0) {
+        push({ task: task._id, actor: admin._id, actorName: 'Admin User', type: 'assigned', to: actorName(assignee), createdAt: new Date(t0.getTime() + 2 * HOUR) });
+      }
+
+    } else if (s.status === 'in_progress') {
+      // created 10–17 days ago; moved to in_progress 4–7 days ago
+      const off = i - 15;
+      const t0 = ago((10 + off % 8) * 24);
+      const t1 = ago((4 + off % 4) * 24);
+      push({ task: task._id, actor: creator, actorName: actorName(creator), type: 'created', createdAt: t0 });
+      if (assignee && off % 2 === 0) {
+        push({ task: task._id, actor: creator, actorName: actorName(creator), type: 'assigned', to: actorName(assignee), createdAt: new Date(t0.getTime() + 3 * HOUR) });
+      }
+      if (off % 4 === 1) {
+        const prevPriority = s.priority === 'high' ? 'medium' : 'low';
+        push({ task: task._id, actor: admin._id, actorName: 'Admin User', type: 'priority_changed', from: prevPriority, to: s.priority, createdAt: new Date(t0.getTime() + 5 * HOUR) });
+      }
+      push({ task: task._id, actor: assignee ?? creator, actorName: actorName(assignee ?? creator), type: 'status_changed', from: 'open', to: 'in_progress', createdAt: t1 });
+      if (off % 3 === 2) {
+        push({ task: task._id, actor: creator, actorName: actorName(creator), type: 'edited', field: 'description', createdAt: new Date(t1.getTime() + 4 * HOUR) });
+      }
+
+    } else if (s.status === 'testing') {
+      // created 18–27 days ago; open→in_progress 12–16 days ago; in_progress→testing 3–5 days ago
+      const off = i - 30;
+      const t0 = ago((18 + off % 10) * 24);
+      const t1 = ago((12 + off % 5) * 24);
+      const t2 = ago((3 + off % 3) * 24);
+      push({ task: task._id, actor: creator, actorName: actorName(creator), type: 'created', createdAt: t0 });
+      if (assignee) {
+        push({ task: task._id, actor: admin._id, actorName: 'Admin User', type: 'assigned', to: actorName(assignee), createdAt: new Date(t0.getTime() + HOUR) });
+      }
+      push({ task: task._id, actor: assignee ?? creator, actorName: actorName(assignee ?? creator), type: 'status_changed', from: 'open', to: 'in_progress', createdAt: t1 });
+      if (off % 2 === 0) {
+        push({ task: task._id, actor: admin._id, actorName: 'Admin User', type: 'edited', field: 'title', createdAt: new Date(t1.getTime() + 2 * HOUR) });
+      }
+      push({ task: task._id, actor: assignee ?? creator, actorName: actorName(assignee ?? creator), type: 'status_changed', from: 'in_progress', to: 'testing', createdAt: t2 });
+
+    } else if (s.status === 'done') {
+      // created 25–39 days ago; full open→in_progress→testing→done pipeline
+      const off = i - 40;
+      const t0 = ago((25 + off % 15) * 24);
+      const t1 = ago((18 + off % 7) * 24);
+      const t2 = ago((9 + off % 5) * 24);
+      const t3 = ago((1 + off % 3) * 24);
+      push({ task: task._id, actor: creator, actorName: actorName(creator), type: 'created', createdAt: t0 });
+      if (assignee) {
+        push({ task: task._id, actor: admin._id, actorName: 'Admin User', type: 'assigned', to: actorName(assignee), createdAt: new Date(t0.getTime() + 30 * 60 * 1000) });
+      }
+      if (off % 3 === 0) {
+        const prevPriority = s.priority === 'high' ? 'medium' : (s.priority === 'medium' ? 'low' : 'medium');
+        push({ task: task._id, actor: admin._id, actorName: 'Admin User', type: 'priority_changed', from: prevPriority, to: s.priority, createdAt: new Date(t0.getTime() + 2 * HOUR) });
+      }
+      push({ task: task._id, actor: assignee ?? creator, actorName: actorName(assignee ?? creator), type: 'status_changed', from: 'open', to: 'in_progress', createdAt: t1 });
+      if (off % 2 === 1) {
+        push({ task: task._id, actor: creator, actorName: actorName(creator), type: 'edited', field: 'description', createdAt: new Date(t1.getTime() + 3 * HOUR) });
+      }
+      push({ task: task._id, actor: assignee ?? creator, actorName: actorName(assignee ?? creator), type: 'status_changed', from: 'in_progress', to: 'testing', createdAt: t2 });
+      push({ task: task._id, actor: admin._id, actorName: 'Admin User', type: 'status_changed', from: 'testing', to: 'done', createdAt: t3 });
+    }
+  });
+
+  await Activity.insertMany(activityDocs);
+
+  console.log(`✓ Seed complete — 4 users, 50 tasks, ${activityDocs.length} activity entries created`);
   console.log('  admin@taskforge.com  / admin123  (role: admin)');
   console.log('  jane@taskforge.com   / user1234  (role: user)');
   console.log('  john@taskforge.com   / user1234  (role: user)');
