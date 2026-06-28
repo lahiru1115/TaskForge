@@ -111,7 +111,7 @@ export default function CommentSection({ taskId }: { taskId: string }) {
                       >
                         <PopoverTrigger asChild>
                           <button
-                            className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                            className={`ml-auto transition-opacity text-muted-foreground hover:text-destructive ${confirmingId === c._id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                             aria-label="Delete comment"
                           >
                             <Trash2 className="size-3.5" />
