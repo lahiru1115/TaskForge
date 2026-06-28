@@ -11,6 +11,7 @@ import {
   closestCorners,
   useSensor,
   useSensors,
+  type DragCancelEvent,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { generateKeyBetween } from 'fractional-indexing'
@@ -56,10 +57,13 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const move = useMoveTask()
 
-  // Sync columns when server data refreshes (e.g. after invalidation)
+  // Sync columns only when server data changes — NOT when activeTask changes.
+  // Reacting to activeTask would rebuild from stale tasks right after a drop
+  // (before the optimistic update lands), causing the snap-back glitch.
   useEffect(() => {
     if (!activeTask) setColumns(buildColumns(tasks))
-  }, [tasks, activeTask])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -111,6 +115,11 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
     })
   }
 
+  function handleDragCancel(_event: DragCancelEvent) {
+    setActiveTask(null)
+    setColumns(buildColumns(tasks))
+  }
+
   function handleDragEnd(event: DragEndEvent) {
     const { active } = event
     const activeId = active.id as string
@@ -152,6 +161,7 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <div className="overflow-x-auto">
         <div className="flex items-start gap-3" style={{ minWidth: `${STATUSES.length * 272}px` }}>

@@ -27,7 +27,7 @@ export default function BoardColumn({ id, tasks, activeId }: BoardColumnProps) {
   return (
     <div
       className={cn(
-        'flex min-w-[272px] flex-1 flex-col rounded-lg border border-t-4',
+        'flex min-w-68 flex-1 flex-col rounded-lg border border-t-4',
         config.accent,
         isOver && 'ring-2 ring-primary/30',
       )}
@@ -44,7 +44,7 @@ export default function BoardColumn({ id, tasks, activeId }: BoardColumnProps) {
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
         <div
           ref={setNodeRef}
-          className="flex flex-col gap-2 overflow-y-auto p-2 pt-0 min-h-[200px] h-[calc(100vh-18rem)]"
+          className="flex flex-col gap-2 overflow-y-auto p-2 pt-0 min-h-50 h-[calc(100vh-18rem)]"
         >
           {tasks.map((task) => (
             <BoardCard key={task._id} task={task} isDragOverlay={false} />
