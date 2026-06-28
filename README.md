@@ -2,7 +2,7 @@
 
 A full-stack task management app with role-based access control. Admins see and manage all tasks; regular users see only tasks they created or are assigned to.
 
-**Stack:** React + Vite + TypeScript · Express 5 + TypeScript · MongoDB (Atlas) · shadcn/ui + Tailwind · TanStack Query · JWT auth
+**Stack:** React + Vite + TypeScript · Express 5 + TypeScript · MongoDB Atlas · shadcn/ui + Tailwind · TanStack Query · JWT auth
 
 ---
 
@@ -12,9 +12,12 @@ A full-stack task management app with role-based access control. Admins see and 
 - **Role-based access** — admin sees everything; users see only their tasks (enforced on the API, not just the UI)
 - **Task CRUD** — create, view, edit, delete with title, description, priority, status, due date, assignee
 - **Status workflow** — Open → In Progress → Testing → Done
-- **Assignee-only edit** — assigned users can update status; full edit requires creator or admin
-- **Task list** — table/card view toggle, search by title, filter by status/priority/assignee, sortable
-- **Dashboard** — stats cards: total, overdue, counts by status and priority
+- **Assignee-only edit** — assigned users can update status only; full edit requires creator or admin
+- **Task list** — table/card view toggle, search by title, filter by status/priority/assignee, sortable columns
+- **Kanban board** — drag-and-drop across status columns with live card preview; drag to reorder within a column; fractional-index ranking (one write per move, no cascading updates)
+- **Dashboard** — stats cards: total, overdue, counts by status and priority; clickable cards pre-apply filters
+- **Profile** — view account details, edit name/email, change password
+- **Dark mode** — toggle in navbar, persists to `localStorage`
 - **Toasts** — success and error feedback on all mutations
 - **Skeleton loading states** and empty/error states throughout
 
@@ -25,6 +28,7 @@ A full-stack task management app with role-based access control. Admins see and 
 ```
 taskforge-backend/    Express 5 + TypeScript REST API
 taskforge-frontend/   React + Vite SPA
+docs/PLAN.md          Authoritative build plan and feature log
 ```
 
 ---
@@ -55,13 +59,13 @@ cp .env.example .env
 
 Edit `.env` and fill in the required values:
 
-| Variable        | Required | Description |
-|----------------|----------|-------------|
-| `MONGODB_URI`  | Yes      | MongoDB Atlas connection string |
-| `JWT_SECRET`   | Yes      | Long random string for signing tokens |
-| `PORT`         | No       | API port (default `4000`) |
-| `CLIENT_ORIGIN`| No       | Frontend origin for CORS (default `http://localhost:5173`) |
-| `JWT_EXPIRES_IN`| No      | Token lifetime (default `7d`) |
+| Variable         | Required | Description |
+|-----------------|----------|-------------|
+| `MONGODB_URI`   | Yes      | MongoDB Atlas connection string |
+| `JWT_SECRET`    | Yes      | Long random string for signing tokens |
+| `PORT`          | No       | API port (default `4000`) |
+| `CLIENT_ORIGIN` | No       | Frontend origin for CORS (default `http://localhost:5173`) |
+| `JWT_EXPIRES_IN`| No       | Token lifetime (default `7d`) |
 
 ### 3. Configure the frontend
 
@@ -99,7 +103,7 @@ API: http://localhost:4000
 
 ## Seed demo data
 
-Populates two users and five sample tasks (clears existing data first):
+Populates 4 users and 50 sample tasks across all status columns (clears existing data first):
 
 ```bash
 cd taskforge-backend
@@ -110,10 +114,12 @@ npm run seed
 
 | Email | Password | Role |
 |-------|----------|------|
-| `admin@taskforge.dev` | `admin123` | Admin |
-| `jane@taskforge.dev`  | `user1234` | User  |
+| `admin@taskforge.com` | `admin123` | Admin |
+| `jane@taskforge.com`  | `user1234` | User  |
+| `john@taskforge.com`  | `user1234` | User  |
+| `sarah@taskforge.com` | `user1234` | User  |
 
-The admin account sees all tasks and can assign tasks to other users. Jane's account sees only the tasks she created or was assigned to.
+The admin account sees all tasks and can assign tasks to any user. Regular user accounts see only tasks they created or were assigned to.
 
 ---
 
@@ -141,7 +147,7 @@ cd taskforge-frontend && npm run build
 | GET | `/api/tasks/stats` | Bearer | Dashboard stats |
 | POST | `/api/tasks` | Bearer | Create task |
 | GET | `/api/tasks/:id` | Bearer | Task detail |
-| PATCH | `/api/tasks/:id` | Bearer | Update task |
-| DELETE | `/api/tasks/:id` | Bearer | Delete task |
+| PATCH | `/api/tasks/:id` | Bearer | Update task (status + rank for assignees; all fields for creator/admin) |
+| DELETE | `/api/tasks/:id` | Bearer | Delete task (creator or admin only) |
 
 Non-admins receive `404` (not `403`) for tasks they don't own — existence is not leaked.
