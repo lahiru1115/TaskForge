@@ -18,6 +18,7 @@ export interface ITask extends Document {
   priority: TaskPriority;
   status: TaskStatus;
   dueDate: Date | null;
+  rank: string;
   createdBy: Types.ObjectId;
   assignedTo: Types.ObjectId | null;
   createdAt: Date;
@@ -31,6 +32,7 @@ const taskSchema = new Schema<ITask>(
     priority: { type: String, enum: TASK_PRIORITIES, default: 'medium' },
     status: { type: String, enum: TASK_STATUSES, default: 'open' },
     dueDate: { type: Date, default: null },
+    rank: { type: String, default: '' },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -46,5 +48,7 @@ const taskSchema = new Schema<ITask>(
   },
   { timestamps: true }
 );
+
+taskSchema.index({ status: 1, rank: 1 });
 
 export const Task = model<ITask>('Task', taskSchema);

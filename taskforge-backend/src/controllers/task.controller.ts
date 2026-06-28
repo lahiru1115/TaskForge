@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { generateKeyBetween, generateNKeysBetween } from 'fractional-indexing';
 import { Task, ITask, TASK_STATUSES, TaskPriority, TaskStatus } from '../models/Task';
 import { ApiError } from '../utils/ApiError';
 import { IUser } from '../models/User';
@@ -117,14 +118,18 @@ export async function getTaskStats(req: Request, res: Response) {
 
 export async function createTask(req: Request, res: Response) {
   const body = req.body as CreateTaskInput;
+  const status = (body.status as TaskStatus | undefined) ?? 'open';
+  const lastRanked = await Task.findOne({ status }).sort({ rank: -1 }).select('rank').lean();
+  const rank = generateKeyBetween(lastRanked?.rank ?? null, null);
   const doc = {
     title: body.title,
     description: body.description,
     priority: body.priority as TaskPriority | undefined,
-    status: body.status as TaskStatus | undefined,
+    status,
     dueDate: body.dueDate,
     assignedTo: body.assignedTo ?? null,
     createdBy: req.user!._id,
+    rank,
   };
   const task = await Task.create(doc);
   await task.populate([
@@ -158,7 +163,7 @@ export async function updateTask(req: Request, res: Response) {
 
   if (!canManage(task, user)) {
     const keys = Object.keys(body);
-    if (keys.some((k) => k !== 'status')) {
+    if (keys.some((k) => k !== 'status' && k !== 'rank')) {
       throw ApiError.forbidden('You may only update the status of this task');
     }
   }

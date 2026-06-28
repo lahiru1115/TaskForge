@@ -26,6 +26,7 @@ export const updateTaskSchema = z
     status: z.enum(TASK_STATUSES as [string, ...string[]]),
     dueDate: z.coerce.date().nullable(),
     assignedTo: nullableObjectId,
+    rank: z.string().min(1).max(64),
   })
   .partial()
   .refine((obj) => Object.keys(obj).length > 0, {

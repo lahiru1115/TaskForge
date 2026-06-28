@@ -15,6 +15,7 @@ export interface Task {
   priority: 'low' | 'medium' | 'high'
   status: 'open' | 'in_progress' | 'testing' | 'done'
   dueDate?: string
+  rank: string
   createdBy: TaskUser
   assignedTo?: TaskUser | null
   createdAt: string
@@ -100,21 +101,21 @@ export function useDeleteTask() {
   })
 }
 
-export function useMoveTaskStatus() {
+export function useMoveTask() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: Task['status'] }) => {
-      const { data } = await api.patch(`/api/tasks/${id}`, { status })
+    mutationFn: async ({ id, status, rank }: { id: string; status: Task['status']; rank: string }) => {
+      const { data } = await api.patch(`/api/tasks/${id}`, { status, rank })
       return data.task as Task
     },
-    onMutate: async ({ id, status }) => {
+    onMutate: async ({ id, status, rank }) => {
       await qc.cancelQueries({ queryKey: ['tasks'] })
       const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['tasks'] })
       qc.setQueriesData<TasksResponse>({ queryKey: ['tasks'] }, (old) => {
         if (!old?.tasks) return old
         return {
           ...old,
-          tasks: old.tasks.map((t) => (t._id === id ? { ...t, status } : t)),
+          tasks: old.tasks.map((t) => (t._id === id ? { ...t, status, rank } : t)),
         }
       })
       return { snapshot }

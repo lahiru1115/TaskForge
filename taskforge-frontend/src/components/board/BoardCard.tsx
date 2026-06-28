@@ -1,4 +1,4 @@
-import { useDraggable } from '@dnd-kit/core'
+import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Link } from 'react-router-dom'
 import { CalendarDays, GripVertical, User } from 'lucide-react'
@@ -20,42 +20,43 @@ interface BoardCardProps {
 }
 
 export default function BoardCard({ task, isDragOverlay = false }: BoardCardProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task._id,
     data: { task },
   })
 
   const style = {
-    transform: CSS.Translate.toString(transform),
+    transform: CSS.Transform.toString(transform),
+    transition,
   }
 
   return (
     <div
       ref={setNodeRef}
       style={style}
+      // Drag listeners on the whole card so any area initiates drag
+      {...listeners}
+      {...attributes}
       className={cn(
         'group relative rounded-lg border bg-card text-card-foreground shadow-sm',
+        'select-none touch-none', // prevent text selection and scroll-on-touch during drag
         isDragging && !isDragOverlay && 'opacity-40',
         isDragOverlay && 'shadow-lg rotate-1 cursor-grabbing',
         !isDragging && !isDragOverlay && 'cursor-grab',
       )}
     >
       <div className="flex items-start gap-1 p-3">
-        <button
-          {...listeners}
-          {...attributes}
-          className="mt-0.5 shrink-0 cursor-grab touch-none text-muted-foreground/40 hover:text-muted-foreground transition-colors"
-          aria-label="Drag to reorder"
-          tabIndex={0}
-        >
-          <GripVertical className="size-4" />
-        </button>
+        {/* Grip icon — visual affordance only, no separate listeners needed */}
+        <GripVertical className="mt-0.5 shrink-0 size-4 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
+
         <div className="min-w-0 flex-1">
           <Link
             to={`/tasks/${task._id}`}
             state={{ from: '/board' }}
+            // Allow pointer events on the link so click-to-navigate still works;
+            // prevent navigation if a drag was in progress
             onClick={(e) => isDragging && e.preventDefault()}
-            className="block text-sm font-medium leading-snug hover:underline underline-offset-2 line-clamp-2"
+            className="block text-sm font-medium leading-snug hover:underline underline-offset-2 line-clamp-2 cursor-pointer"
           >
             {task.title}
           </Link>

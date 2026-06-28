@@ -1,3 +1,4 @@
+import { generateNKeysBetween } from 'fractional-indexing';
 import { connectDB, disconnectDB } from './config/db';
 import { User, hashPassword } from './models/User';
 import { Task } from './models/Task';
@@ -25,12 +26,19 @@ async function seed() {
     role: 'user',
   });
 
+  // Pre-assign fractional-index ranks per status group
+  const openRanks = generateNKeysBetween(null, null, 2);
+  const inProgressRanks = generateNKeysBetween(null, null, 1);
+  const testingRanks = generateNKeysBetween(null, null, 1);
+  const doneRanks = generateNKeysBetween(null, null, 1);
+
   await Task.insertMany([
     {
       title: 'Set up CI/CD pipeline',
       description: 'Configure GitHub Actions for automated builds and deployments.',
       priority: 'high',
       status: 'in_progress',
+      rank: inProgressRanks[0],
       createdBy: admin._id,
       assignedTo: regular._id,
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -40,6 +48,7 @@ async function seed() {
       description: 'Document all REST endpoints with request/response examples.',
       priority: 'medium',
       status: 'open',
+      rank: openRanks[0],
       createdBy: admin._id,
       assignedTo: null,
     },
@@ -48,6 +57,7 @@ async function seed() {
       description: 'After login, users are sometimes redirected to a blank page.',
       priority: 'high',
       status: 'testing',
+      rank: testingRanks[0],
       createdBy: regular._id,
       assignedTo: regular._id,
       dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
@@ -57,6 +67,7 @@ async function seed() {
       description: 'Create wireframes for the new user onboarding experience.',
       priority: 'low',
       status: 'open',
+      rank: openRanks[1],
       createdBy: regular._id,
       assignedTo: null,
     },
@@ -65,6 +76,7 @@ async function seed() {
       description: 'Review slow query logs and add missing indexes.',
       priority: 'medium',
       status: 'done',
+      rank: doneRanks[0],
       createdBy: admin._id,
       assignedTo: admin._id,
     },

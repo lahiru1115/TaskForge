@@ -1,4 +1,5 @@
 import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { cn } from '@/lib/utils'
 import BoardCard from './BoardCard'
 import type { Task } from '@/hooks/useTasks'
@@ -21,6 +22,7 @@ interface BoardColumnProps {
 export default function BoardColumn({ id, tasks, activeId }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id })
   const config = COLUMN_CONFIG[id]
+  const taskIds = tasks.map((t) => t._id)
 
   return (
     <div
@@ -39,20 +41,22 @@ export default function BoardColumn({ id, tasks, activeId }: BoardColumnProps) {
       </div>
 
       {/* Scrollable card list — each column scrolls independently */}
-      <div
-        ref={setNodeRef}
-        className="flex flex-col gap-2 overflow-y-auto p-2 pt-0 min-h-[200px] h-[calc(100vh-18rem)]"
-      >
-        {tasks.map((task) => (
-          <BoardCard key={task._id} task={task} isDragOverlay={false} />
-        ))}
+      <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+        <div
+          ref={setNodeRef}
+          className="flex flex-col gap-2 overflow-y-auto p-2 pt-0 min-h-[200px] h-[calc(100vh-18rem)]"
+        >
+          {tasks.map((task) => (
+            <BoardCard key={task._id} task={task} isDragOverlay={false} />
+          ))}
 
-        {tasks.length === 0 && activeId === null && (
-          <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-muted-foreground/20 py-6 text-xs text-muted-foreground/50">
-            Drop tasks here
-          </div>
-        )}
-      </div>
+          {tasks.length === 0 && activeId === null && (
+            <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-muted-foreground/20 py-6 text-xs text-muted-foreground/50">
+              Drop tasks here
+            </div>
+          )}
+        </div>
+      </SortableContext>
     </div>
   )
 }
