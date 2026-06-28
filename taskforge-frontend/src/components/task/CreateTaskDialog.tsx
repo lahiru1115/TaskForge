@@ -43,12 +43,7 @@ export default function CreateTaskDialog() {
       </DialogTrigger>
       <DialogContent
         className="sm:max-w-md"
-        onPointerDownOutside={(e) => {
-          const target = e.target as Element
-          if (target?.closest?.('[data-radix-popper-content-wrapper]')) {
-            e.preventDefault()
-          }
-        }}
+        onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle>New task</DialogTitle>
@@ -56,5 +51,5 @@ export default function CreateTaskDialog() {
         <TaskForm onSubmit={handleSubmit} submitLabel="Create task" />
       </DialogContent>
     </Dialog>
-  )
+  );
 }
