@@ -80,7 +80,7 @@ export default function BoardPage() {
             <SelectContent>
               <SelectItem value="_all">Assignee</SelectItem>
               {users.map((u) => (
-                <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>

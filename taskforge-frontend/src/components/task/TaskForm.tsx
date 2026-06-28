@@ -124,7 +124,7 @@ export default function TaskForm({
                     <SelectContent>
                       <SelectItem value="_none">Unassigned</SelectItem>
                       {users.map((u) => (
-                        <SelectItem key={u.id} value={u.id}>
+                        <SelectItem key={u._id} value={u._id}>
                           {u.name}
                         </SelectItem>
                       ))}

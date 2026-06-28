@@ -109,7 +109,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         <FilterSelect
           value={filters.assignedTo}
           placeholder="Assignee"
-          options={users.map((u) => ({ value: u.id, label: u.name }))}
+          options={users.map((u) => ({ value: u._id, label: u.name }))}
           onChange={(v) => set('assignedTo', v)}
         />
       )}

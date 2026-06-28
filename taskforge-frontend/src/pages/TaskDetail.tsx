@@ -8,6 +8,7 @@ import PriorityBadge from '@/components/shared/PriorityBadge'
 import EditTaskDialog from '@/components/task/EditTaskDialog'
 import DeleteTaskDialog from '@/components/task/DeleteTaskDialog'
 import ActivityFeed from '@/components/task/ActivityFeed'
+import CommentSection from '@/components/task/CommentSection'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -164,6 +165,12 @@ export default function TaskDetailPage() {
       <div className="grid gap-3">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Activity</h2>
         <ActivityFeed taskId={id!} />
+      </div>
+
+      {/* Comments */}
+      <div className="grid gap-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Comments</h2>
+        <CommentSection taskId={id!} />
       </div>
     </div>
   )
