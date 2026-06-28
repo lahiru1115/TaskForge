@@ -9,12 +9,16 @@ import { asyncHandler } from '../utils/asyncHandler';
  */
 export const authenticate = asyncHandler(
   async (req: Request, _res: Response, next: NextFunction) => {
-    const header = req.headers.authorization;
-    if (!header || !header.startsWith('Bearer ')) {
-      throw ApiError.unauthorized('Missing or malformed Authorization header');
-    }
+    // Cookie is the primary auth mechanism; Authorization header is a fallback for API clients.
+    const token: string | undefined =
+      req.cookies?.tf_token ??
+      (req.headers.authorization?.startsWith('Bearer ')
+        ? req.headers.authorization.slice('Bearer '.length).trim()
+        : undefined);
 
-    const token = header.slice('Bearer '.length).trim();
+    if (!token) {
+      throw ApiError.unauthorized('Not authenticated');
+    }
     let payload;
     try {
       payload = verifyToken(token);
