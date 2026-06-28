@@ -108,7 +108,21 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
       // Move to a different column — determine insertion index
       const [movedTask] = sourceTasks.splice(sourceIdx, 1)
       const overIdx = destTasks.findIndex((t) => t._id === overId)
-      const insertIdx = overIdx >= 0 ? overIdx : destTasks.length
+
+      let insertIdx: number
+      if (overIdx === -1) {
+        // overId is a column id (empty column or column header) — append to end
+        insertIdx = destTasks.length
+      } else {
+        // Insert before or after the over card based on which half the dragged card is in
+        const overRect = over.rect
+        const translated = active.rect.current.translated
+        const isBelowMidpoint = translated
+          ? translated.top + translated.height / 2 > overRect.top + overRect.height / 2
+          : false
+        insertIdx = isBelowMidpoint ? overIdx + 1 : overIdx
+      }
+
       destTasks.splice(insertIdx, 0, movedTask)
 
       return { ...prev, [sourceCol]: sourceTasks, [destCol]: destTasks }
