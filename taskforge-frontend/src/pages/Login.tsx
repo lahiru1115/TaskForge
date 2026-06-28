@@ -180,28 +180,31 @@ export default function LoginPage() {
               <span className="text-xs text-muted-foreground">or try a demo account</span>
               <div className="h-px flex-1 bg-border" />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map(({ label, email, password, role }) => (
-                <Button
-                  key={email}
-                  type="button"
-                  variant="outline"
-                  className="w-full h-auto flex-col gap-0.5 py-2 text-xs"
-                  disabled={!!demoLoading || form.formState.isSubmitting}
-                  onClick={() => onDemoLogin(email, password)}
-                >
-                  {demoLoading === email ? (
-                    <span>Signing in…</span>
-                  ) : (
-                    <>
-                      <span className="font-medium">{label}</span>
-                      <span className={role === 'admin' ? 'text-violet-500' : 'text-muted-foreground'}>
-                        {role}
-                      </span>
-                    </>
-                  )}
-                </Button>
-              ))}
+            <div className="rounded-lg border overflow-hidden divide-y">
+              {DEMO_ACCOUNTS.map(({ label, email, password, role }, i) => {
+                const initials = label.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+                const colors = ['bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-orange-500']
+                const isLoading = demoLoading === email
+                return (
+                  <button
+                    key={email}
+                    type="button"
+                    disabled={!!demoLoading || form.formState.isSubmitting}
+                    onClick={() => onDemoLogin(email, password)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm cursor-pointer hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className={`${colors[i]} size-7 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0`}>
+                      {initials}
+                    </span>
+                    <span className="flex-1 font-medium text-foreground">
+                      {isLoading ? 'Signing in…' : `Login as ${label}`}
+                    </span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${role === 'admin' ? 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300' : 'bg-muted text-muted-foreground'}`}>
+                      {role}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
