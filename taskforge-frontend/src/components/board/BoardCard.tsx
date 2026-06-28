@@ -50,18 +50,20 @@ export default function BoardCard({ task, isDragOverlay = false }: BoardCardProp
         <GripVertical className="mt-0.5 shrink-0 size-4 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
 
         <div className="min-w-0 flex-1">
-          <Link
-            to={`/tasks/${task._id}`}
-            state={{ from: '/board' }}
-            // Allow pointer events on the link so click-to-navigate still works;
-            // prevent navigation if a drag was in progress
-            onClick={(e) => isDragging && e.preventDefault()}
-            className="block text-sm font-medium leading-snug hover:underline underline-offset-2 line-clamp-2 cursor-pointer"
-          >
-            {task.title}
-          </Link>
+          {/* Wrapper div owns line-clamp so the link stays inline.
+              Inline link = pointer cursor only over actual text, not full row width. */}
+          <div className="line-clamp-2 text-sm font-medium leading-snug">
+            <Link
+              to={`/tasks/${task._id}`}
+              state={{ from: '/board' }}
+              onClick={(e) => isDragging && e.preventDefault()}
+              className="hover:underline underline-offset-2"
+            >
+              {task.title}
+            </Link>
+          </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
             <PriorityBadge priority={task.priority} />
 
             {task.dueDate && (
