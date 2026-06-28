@@ -20,13 +20,13 @@ function fmt(iso: string) {
   })
 }
 
-function MetaRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+function SidebarRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-3">
-      <span className="mt-0.5 text-muted-foreground">{icon}</span>
-      <div>
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-        <p className="text-sm text-foreground">{value}</p>
+    <div className="flex items-start gap-2.5 py-2.5 border-b last:border-0">
+      <span className="mt-0.5 shrink-0 text-muted-foreground">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-0.5">{label}</p>
+        <div className="text-sm text-foreground">{value}</div>
       </div>
     </div>
   )
@@ -42,20 +42,26 @@ export default function TaskDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-2xl grid gap-6">
+      <div className="mx-auto max-w-5xl grid gap-6">
         <Skeleton className="h-8 w-20" />
-        <div className="grid gap-3">
-          <Skeleton className="h-8 w-3/4" />
-          <div className="flex gap-2">
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-6 w-16" />
+        <Skeleton className="h-8 w-2/3" />
+        <div className="grid gap-6 lg:grid-cols-[1fr_260px] items-start">
+          <div className="grid gap-6">
+            <Skeleton className="h-20 w-full" />
+            <div className="grid gap-3">
+              <Skeleton className="h-4 w-24" />
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex gap-3">
+                  <Skeleton className="size-6 rounded-full shrink-0" />
+                  <div className="grid gap-1.5 flex-1">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        <Skeleton className="h-16 w-full" />
-        <div className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
+          <Skeleton className="h-64 w-full rounded-lg" />
         </div>
       </div>
     )
@@ -72,10 +78,9 @@ export default function TaskDetailPage() {
     )
   }
 
-  const canManage =
-    isAdmin || task.createdBy._id === user?._id
-  const isAssignee =
-    !canManage && task.assignedTo?._id === user?._id
+  const canManage = isAdmin || task.createdBy._id === user?._id
+  const isAssignee = !canManage && task.assignedTo?._id === user?._id
+  const isOverdue = task.dueDate && task.status !== 'done' && new Date(task.dueDate) < new Date()
 
   async function handleDelete() {
     try {
@@ -87,11 +92,9 @@ export default function TaskDetailPage() {
     }
   }
 
-  const isOverdue =
-    task.dueDate && task.status !== 'done' && new Date(task.dueDate) < new Date()
-
   return (
-    <div className="mx-auto max-w-2xl grid gap-6">
+    <div className="mx-auto max-w-5xl grid gap-4">
+
       {/* Back */}
       <div>
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
@@ -100,77 +103,86 @@ export default function TaskDetailPage() {
         </Button>
       </div>
 
-      {/* Header */}
-      <div className="grid gap-3">
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-semibold leading-snug">{task.title}</h1>
-          <div className="flex shrink-0 items-center gap-2">
-            {(canManage || isAssignee) && (
-              <EditTaskDialog task={task} canManage={canManage} />
-            )}
-            {canManage && (
-              <DeleteTaskDialog onConfirm={handleDelete} />
-            )}
+      {/* Title */}
+      <h1 className="text-2xl font-semibold leading-snug">{task.title}</h1>
+
+      {/* Two-column body */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_260px] items-start">
+
+        {/* Main — description, activity, comments */}
+        <div className="grid gap-6 min-w-0">
+          {task.description ? (
+            <p className="text-muted-foreground whitespace-pre-wrap">{task.description}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No description.</p>
+          )}
+
+          <div className="grid gap-3">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Activity</h2>
+            <ActivityFeed taskId={id!} />
+          </div>
+
+          <div className="grid gap-3">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Comments</h2>
+            <CommentSection taskId={id!} />
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={task.status} />
-          <PriorityBadge priority={task.priority} />
+        {/* Sidebar — metadata + actions */}
+        <div className="grid gap-3">
+          {/* Actions */}
+          {(canManage || isAssignee) && (
+            <div className="flex gap-2">
+              <EditTaskDialog task={task} canManage={canManage} />
+              {canManage && <DeleteTaskDialog onConfirm={handleDelete} />}
+            </div>
+          )}
+
+          {/* Metadata card */}
+          <div className="rounded-lg border bg-card px-4">
+            <SidebarRow
+              icon={<span className="size-4 inline-flex items-center" />}
+              label="Status"
+              value={<StatusBadge status={task.status} />}
+            />
+            <SidebarRow
+              icon={<span className="size-4 inline-flex items-center" />}
+              label="Priority"
+              value={<PriorityBadge priority={task.priority} />}
+            />
+            <SidebarRow
+              icon={<User className="size-4" />}
+              label="Created by"
+              value={task.createdBy.name}
+            />
+            <SidebarRow
+              icon={<User className="size-4" />}
+              label="Assigned to"
+              value={task.assignedTo?.name ?? <span className="text-muted-foreground">Unassigned</span>}
+            />
+            {task.dueDate && (
+              <SidebarRow
+                icon={<CalendarDays className="size-4" />}
+                label="Due date"
+                value={
+                  <span className={isOverdue ? 'text-destructive font-medium' : undefined}>
+                    {fmt(task.dueDate)}{isOverdue && ' · Overdue'}
+                  </span>
+                }
+              />
+            )}
+            <SidebarRow
+              icon={<Clock className="size-4" />}
+              label="Created"
+              value={fmt(task.createdAt)}
+            />
+            <SidebarRow
+              icon={<Clock className="size-4" />}
+              label="Updated"
+              value={fmt(task.updatedAt)}
+            />
+          </div>
         </div>
-      </div>
-
-      {/* Description */}
-      {task.description && (
-        <p className="text-muted-foreground whitespace-pre-wrap">{task.description}</p>
-      )}
-
-      {/* Metadata */}
-      <div className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2">
-        {task.dueDate && (
-          <MetaRow
-            icon={<CalendarDays className="size-4" />}
-            label="Due date"
-            value={
-              <span className={isOverdue ? 'text-destructive font-medium' : undefined}>
-                {fmt(task.dueDate)}
-                {isOverdue && ' · Overdue'}
-              </span>
-            }
-          />
-        )}
-        <MetaRow
-          icon={<User className="size-4" />}
-          label="Created by"
-          value={task.createdBy.name}
-        />
-        <MetaRow
-          icon={<User className="size-4" />}
-          label="Assigned to"
-          value={task.assignedTo?.name ?? 'Unassigned'}
-        />
-        <MetaRow
-          icon={<Clock className="size-4" />}
-          label="Created"
-          value={fmt(task.createdAt)}
-        />
-        <MetaRow
-          icon={<Clock className="size-4" />}
-          label="Last updated"
-          value={fmt(task.updatedAt)}
-        />
-      </div>
-
-      {/* Activity */}
-      <div className="grid gap-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Activity</h2>
-        <ActivityFeed taskId={id!} />
-      </div>
-
-      {/* Comments */}
-      <div className="grid gap-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Comments</h2>
-        <CommentSection taskId={id!} />
       </div>
     </div>
   )
