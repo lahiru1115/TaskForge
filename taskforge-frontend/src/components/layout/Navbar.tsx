@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, Sun, Moon, Menu, X } from 'lucide-react'
+import { LogOut, Sun, Moon, Menu, X, CalendarDays, LayoutDashboard, ClipboardList, Kanban } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import AppLogo from '@/components/shared/AppLogo'
 
-const NAV_LINK_CLASS = 'rounded-md px-3 py-1.5 text-sm font-medium transition-colors'
+const NAV_LINK_CLASS = 'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors'
 const ACTIVE_CLASS = 'bg-accent text-accent-foreground'
 const INACTIVE_CLASS = 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+
+const NAV_ITEMS = [
+  { to: '/',         label: 'Dashboard', Icon: LayoutDashboard, end: true  },
+  { to: '/tasks',    label: 'Tasks',     Icon: ClipboardList,   end: true  },
+  { to: '/board',    label: 'Board',     Icon: Kanban,          end: true  },
+  { to: '/calendar', label: 'Calendar',  Icon: CalendarDays,    end: true  },
+] as const
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => localStorage.getItem('tf-theme') === 'dark')
@@ -31,7 +37,6 @@ export default function Navbar() {
 
   useEffect(() => { setMenuOpen(false) }, [location.pathname])
 
-  // On task detail pages, highlight whichever list view the user came from
   const isTaskDetail = /^\/tasks\/[^/]+$/.test(location.pathname)
   const referrer = (location.state as { from?: string } | null)?.from
 
@@ -56,15 +61,12 @@ export default function Navbar() {
             TaskForge
           </Link>
           <nav className="hidden sm:flex items-center gap-1">
-            <NavLink to="/" end className={navClass('/')}>
-              Dashboard
-            </NavLink>
-            <NavLink to="/tasks" end className={navClass('/tasks')}>
-              Tasks
-            </NavLink>
-            <NavLink to="/board" end className={navClass('/board')}>
-              Board
-            </NavLink>
+            {NAV_ITEMS.map(({ to, label, Icon, end }) => (
+              <NavLink key={to} to={to} end={end} className={navClass(to)}>
+                <Icon className="size-3.5" />
+                {label}
+              </NavLink>
+            ))}
           </nav>
         </div>
 
@@ -87,14 +89,9 @@ export default function Navbar() {
           <Button variant="ghost" size="icon-sm" onClick={toggleDark} aria-label="Toggle theme">
             {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </Button>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={handleLogout} aria-label="Log out">
-                <LogOut />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Log out</TooltipContent>
-          </Tooltip>
+          <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={handleLogout} aria-label="Log out">
+            <LogOut />
+          </Button>
           <Button
             variant="ghost"
             size="icon-sm"
@@ -110,9 +107,12 @@ export default function Navbar() {
       {/* Mobile nav */}
       {menuOpen && (
         <div className="sm:hidden border-t bg-background px-4 py-3 flex flex-col gap-1">
-          <NavLink to="/" end className={navClass('/')}>Dashboard</NavLink>
-          <NavLink to="/tasks" end className={navClass('/tasks')}>Tasks</NavLink>
-          <NavLink to="/board" end className={navClass('/board')}>Board</NavLink>
+          {NAV_ITEMS.map(({ to, label, Icon, end }) => (
+            <NavLink key={to} to={to} end={end} className={navClass(to)}>
+              <Icon className="size-3.5" />
+              {label}
+            </NavLink>
+          ))}
           {user && (
             <div className="mt-2 pt-2 border-t flex items-center justify-between">
               <div className="flex items-center gap-2">
