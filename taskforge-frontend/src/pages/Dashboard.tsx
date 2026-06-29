@@ -75,7 +75,7 @@ function StatCard({ label, value, icon: Icon, color, accent, blob, loading, filt
       <CardHeader className="pb-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-          <span className={cn('rounded-md p-1.5', color)}>
+          <span className={cn('rounded-md p-1.5 ring-1 ring-current/20', color)}>
             <Icon className="size-4" />
           </span>
         </div>
