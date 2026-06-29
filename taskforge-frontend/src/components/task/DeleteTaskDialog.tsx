@@ -22,7 +22,7 @@ export default function DeleteTaskDialog({ onConfirm }: DeleteTaskDialogProps) {
       <AlertDialogTrigger asChild>
         <Button variant="destructive" size="sm">
           <Trash2 className="size-4" />
-          Delete
+          <span className="hidden sm:inline">Delete</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

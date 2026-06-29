@@ -61,7 +61,7 @@ export default function EditTaskDialog({ task, canManage }: EditTaskDialogProps)
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Pencil className="size-4" />
-          Edit
+          <span className="hidden sm:inline">Edit</span>
         </Button>
       </DialogTrigger>
       <DialogContent
