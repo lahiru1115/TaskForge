@@ -3,6 +3,8 @@ import { connectDB, disconnectDB } from './config/db';
 import { User, hashPassword } from './models/User';
 import { Task, TASK_STATUSES, type TaskStatus, type TaskPriority } from './models/Task';
 import { Activity, type ActivityType } from './models/Activity';
+import { Comment } from './models/Comment';
+import { LoginEvent } from './models/LoginEvent';
 
 const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
@@ -21,6 +23,8 @@ async function seed() {
   await User.deleteMany({});
   await Task.deleteMany({});
   await Activity.deleteMany({});
+  await Comment.deleteMany({});
+  await LoginEvent.deleteMany({});
 
   const [adminHash, janeHash, johnHash, sarahHash] = await Promise.all([
     hashPassword('admin123'),
@@ -472,7 +476,68 @@ async function seed() {
 
   await Activity.insertMany(activityDocs);
 
-  console.log(`✓ Seed complete — 4 users, 50 tasks, ${activityDocs.length} activity entries created`);
+  // --- Comments ---
+  // Indices reference insertedTasks positions (0-14 open, 15-29 in_progress, 30-39 testing, 40-49 done)
+
+  type CommentDoc = {
+    task: typeof admin._id;
+    author: typeof admin._id;
+    authorName: string;
+    body: string;
+    createdAt: Date;
+  };
+
+  const commentDocs: CommentDoc[] = [
+    // Task 0 — "Set up monorepo with Turborepo" (open)
+    { task: insertedTasks[0]._id, author: admin._id, authorName: 'Admin User', body: 'Should we also set up shared TypeScript configs in packages/tsconfig? That would save duplication across workspaces.', createdAt: ago(48) },
+    { task: insertedTasks[0]._id, author: john._id, authorName: 'John Smith', body: 'Good idea. I\'ll add a base tsconfig and extend from it. Also considering remote caching with Turborepo — worth discussing.', createdAt: ago(36) },
+    { task: insertedTasks[0]._id, author: admin._id, authorName: 'Admin User', body: 'Agreed on remote caching. Let\'s use Vercel\'s built-in cache for now and revisit if we hit limits.', createdAt: ago(24) },
+
+    // Task 3 — "Implement rate limiting on API" (open)
+    { task: insertedTasks[3]._id, author: jane._id, authorName: 'Jane Doe', body: 'Should we apply different limits per role? Admins probably need higher thresholds than regular users.', createdAt: ago(6) },
+    { task: insertedTasks[3]._id, author: admin._id, authorName: 'Admin User', body: 'Good point. Let\'s go with 100 req/min for users and 500 for admins. We can tighten later based on usage.', createdAt: ago(4) },
+
+    // Task 15 — "Migrate database to MongoDB Atlas" (in_progress)
+    { task: insertedTasks[15]._id, author: john._id, authorName: 'John Smith', body: 'Connection string updated in all environments. The M0 free tier has a 512 MB limit — worth keeping an eye on once real data comes in.', createdAt: ago(10) },
+    { task: insertedTasks[15]._id, author: admin._id, authorName: 'Admin User', body: 'Already on it. Set up Atlas monitoring alerts at 80% capacity. Should be fine for the foreseeable future.', createdAt: ago(7) },
+    { task: insertedTasks[15]._id, author: sarah._id, authorName: 'Sarah Johnson', body: 'Dev environment is connecting fine. Actually noticing lower latency compared to the local instance — nice side effect.', createdAt: ago(3) },
+
+    // Task 17 — "Refactor authentication middleware" (in_progress)
+    { task: insertedTasks[17]._id, author: admin._id, authorName: 'Admin User', body: 'Make sure the new guards are composable — we\'ll need to stack role checks on some routes without duplicating logic.', createdAt: ago(12) },
+    { task: insertedTasks[17]._id, author: john._id, authorName: 'John Smith', body: 'Implemented as higher-order functions. You can now do requireRole(\'admin\') or requireRole(\'admin\', \'manager\'). PR is up for review.', createdAt: ago(8) },
+
+    // Task 20 — "Implement search with debounce" (in_progress)
+    { task: insertedTasks[20]._id, author: jane._id, authorName: 'Jane Doe', body: '300ms feels right for the debounce. Should we also cancel the previous in-flight request when a new one fires?', createdAt: ago(50) },
+    { task: insertedTasks[20]._id, author: admin._id, authorName: 'Admin User', body: 'TanStack Query handles that automatically with the right queryKey setup — no need for manual AbortControllers.', createdAt: ago(46) },
+    { task: insertedTasks[20]._id, author: jane._id, authorName: 'Jane Doe', body: 'Confirmed, works perfectly. Closing the loop on this one — ready for testing.', createdAt: ago(2) },
+
+    // Task 30 — "Fix login redirect after session expiry" (testing)
+    { task: insertedTasks[30]._id, author: john._id, authorName: 'John Smith', body: 'Reproduced consistently. The redirect to /login clears router state, losing the intended destination. Saving the URL to sessionStorage before redirecting should fix it.', createdAt: ago(20) },
+    { task: insertedTasks[30]._id, author: sarah._id, authorName: 'Sarah Johnson', body: 'Confirmed fix works in my local testing. Also verified with expired tokens — redirect happens cleanly and the user lands back on the right page after re-login.', createdAt: ago(10) },
+    { task: insertedTasks[30]._id, author: admin._id, authorName: 'Admin User', body: 'Good catch on the approach. Just make sure the saved URL is validated before redirect to avoid open redirect vulnerabilities.', createdAt: ago(5) },
+
+    // Task 32 — "Test Kanban drag on mobile devices" (testing)
+    { task: insertedTasks[32]._id, author: jane._id, authorName: 'Jane Doe', body: 'iOS Safari passes all scenarios. Android Chrome has a slight delay on initial grab — possibly the touch activation constraint being too tight. Testing with 150ms now.', createdAt: ago(16) },
+    { task: insertedTasks[32]._id, author: john._id, authorName: 'John Smith', body: '150ms feels much better on Android. Still seeing occasional snap-back on fast swipes — investigating if it\'s a collision detection issue.', createdAt: ago(8) },
+
+    // Task 35 — "Load test API under concurrent requests" (testing)
+    { task: insertedTasks[35]._id, author: admin._id, authorName: 'Admin User', body: 'First k6 run peaked at 420 concurrent users before response times degraded. The bottleneck appears to be in the task list query — no index on the composite filter fields.', createdAt: ago(30) },
+    { task: insertedTasks[35]._id, author: john._id, authorName: 'John Smith', body: 'Added compound index on { status, priority, assignedTo }. Re-running the load test — early numbers look much better.', createdAt: ago(18) },
+    { task: insertedTasks[35]._id, author: admin._id, authorName: 'Admin User', body: 'Second run hit 500 concurrent users with p99 under 200ms. That\'s acceptable for now. Marking ready to merge.', createdAt: ago(6) },
+
+    // Task 43 — "Implement JWT authentication" (done)
+    { task: insertedTasks[43]._id, author: admin._id, authorName: 'Admin User', body: 'Great work using HttpOnly cookies instead of localStorage. Remember we\'ll need to set SameSite=None when deploying frontend and backend to separate domains.', createdAt: ago(240) },
+    { task: insertedTasks[43]._id, author: john._id, authorName: 'John Smith', body: 'Already noted in the deployment checklist. Will flip the flag in the auth controller when we set up the prod environment.', createdAt: ago(235) },
+
+    // Task 48 — "Add Kanban board with drag and drop" (done)
+    { task: insertedTasks[48]._id, author: sarah._id, authorName: 'Sarah Johnson', body: 'The fractional indexing approach for rank is clever — avoids reindexing the entire column on every move. Nice.', createdAt: ago(120) },
+    { task: insertedTasks[48]._id, author: admin._id, authorName: 'Admin User', body: 'Touch support was the tricky part. The 200ms delay on TouchSensor is the sweet spot between accidental drags and intentional ones.', createdAt: ago(100) },
+    { task: insertedTasks[48]._id, author: jane._id, authorName: 'Jane Doe', body: 'Tested on iPad and it\'s smooth. One minor thing — the drag overlay shadow could be slightly stronger for better depth perception. Could be a follow-up.', createdAt: ago(80) },
+  ];
+
+  await Comment.insertMany(commentDocs);
+
+  console.log(`✓ Seed complete — 4 users, 50 tasks, ${activityDocs.length} activity entries, ${commentDocs.length} comments created`);
   console.log('  admin@taskforge.com  / admin123  (role: admin)');
   console.log('  jane@taskforge.com   / user1234  (role: user)');
   console.log('  john@taskforge.com   / user1234  (role: user)');

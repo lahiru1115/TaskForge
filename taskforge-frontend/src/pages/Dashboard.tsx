@@ -166,7 +166,7 @@ export default function DashboardPage() {
 
   return (
     <div className="grid gap-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             Welcome back, {user?.name ?? 'there'}
