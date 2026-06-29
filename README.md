@@ -30,7 +30,6 @@ A full-stack task management app with role-based access control. Admins see and 
 ```
 taskforge-backend/    Express 5 + TypeScript REST API
 taskforge-frontend/   React + Vite SPA
-docs/PLAN.md          Feature registry and remaining work
 ```
 
 ---
