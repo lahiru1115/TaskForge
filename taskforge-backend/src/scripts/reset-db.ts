@@ -3,12 +3,14 @@ import { User } from '../models/User';
 import { Task } from '../models/Task';
 import { Activity } from '../models/Activity';
 import { Comment } from '../models/Comment';
+import { LoginEvent } from '../models/LoginEvent';
 
 const collections: Record<string, any> = {
   User,
   Task,
   Activity,
   Comment,
+  LoginEvent,
 };
 
 async function resetDB() {
