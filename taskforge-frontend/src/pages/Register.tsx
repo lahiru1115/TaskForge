@@ -93,7 +93,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile-only logo */}
           <div className="lg:hidden flex items-center justify-center gap-2">
-            <AppLogo size={36} />
+            <AppLogo size={28} />
             <span className="text-xl font-bold">TaskForge</span>
           </div>
 
