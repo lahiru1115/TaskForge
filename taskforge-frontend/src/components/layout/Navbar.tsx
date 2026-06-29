@@ -1,14 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, Sun, Moon } from 'lucide-react'
+import { LogOut, Sun, Moon, Menu, X, CalendarDays, LayoutDashboard, ClipboardList, Kanban } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import AppLogo from '@/components/shared/AppLogo'
 
-const NAV_LINK_CLASS = 'rounded-md px-3 py-1.5 text-sm font-medium transition-colors'
+const NAV_LINK_CLASS = 'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors'
 const ACTIVE_CLASS = 'bg-accent text-accent-foreground'
 const INACTIVE_CLASS = 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+
+const NAV_ITEMS = [
+  { to: '/',         label: 'Dashboard', Icon: LayoutDashboard, end: true  },
+  { to: '/tasks',    label: 'Tasks',     Icon: ClipboardList,   end: true  },
+  { to: '/board',    label: 'Board',     Icon: Kanban,          end: true  },
+  { to: '/calendar', label: 'Calendar',  Icon: CalendarDays,    end: true  },
+] as const
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => localStorage.getItem('tf-theme') === 'dark')
@@ -26,8 +33,10 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [dark, toggleDark] = useDarkMode()
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  // On task detail pages, highlight whichever list view the user came from
+  useEffect(() => { setMenuOpen(false) }, [location.pathname])
+
   const isTaskDetail = /^\/tasks\/[^/]+$/.test(location.pathname)
   const referrer = (location.state as { from?: string } | null)?.from
 
@@ -51,16 +60,13 @@ export default function Navbar() {
             <AppLogo size={24} />
             TaskForge
           </Link>
-          <nav className="flex items-center gap-1">
-            <NavLink to="/" end className={navClass('/')}>
-              Dashboard
-            </NavLink>
-            <NavLink to="/tasks" end className={navClass('/tasks')}>
-              Tasks
-            </NavLink>
-            <NavLink to="/board" end className={navClass('/board')}>
-              Board
-            </NavLink>
+          <nav className="hidden sm:flex items-center gap-1">
+            {NAV_ITEMS.map(({ to, label, Icon, end }) => (
+              <NavLink key={to} to={to} end={end} className={navClass(to)}>
+                <Icon className="size-3.5" />
+                {label}
+              </NavLink>
+            ))}
           </nav>
         </div>
 
@@ -74,7 +80,7 @@ export default function Navbar() {
                 {user.name}
               </Link>
               {isAdmin && (
-                <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                <span className="hidden sm:inline rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
                   Admin
                 </span>
               )}
@@ -83,11 +89,52 @@ export default function Navbar() {
           <Button variant="ghost" size="icon-sm" onClick={toggleDark} aria-label="Toggle theme">
             {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </Button>
-          <Button variant="ghost" size="icon-sm" onClick={handleLogout} aria-label="Log out">
+          <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={handleLogout} aria-label="Log out">
             <LogOut />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="sm:hidden"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
           </Button>
         </div>
       </div>
+
+      {/* Mobile nav */}
+      {menuOpen && (
+        <div className="sm:hidden border-t bg-background px-4 py-3 flex flex-col gap-1">
+          {NAV_ITEMS.map(({ to, label, Icon, end }) => (
+            <NavLink key={to} to={to} end={end} className={navClass(to)}>
+              <Icon className="size-3.5" />
+              {label}
+            </NavLink>
+          ))}
+          {user && (
+            <div className="mt-2 pt-2 border-t flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/profile"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {user.name}
+                </Link>
+                {isAdmin && (
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                    Admin
+                  </span>
+                )}
+              </div>
+              <Button variant="ghost" size="icon-sm" onClick={handleLogout} aria-label="Log out">
+                <LogOut />
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </header>
   )
 }

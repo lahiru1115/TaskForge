@@ -121,28 +121,8 @@ export default function TaskDetailPage() {
       {/* Two-column body */}
       <div className="grid gap-6 lg:grid-cols-[1fr_260px] items-start">
 
-        {/* Main — description, activity, comments */}
-        <div className="grid gap-6 min-w-0">
-          {task.description ? (
-            <p className="text-muted-foreground whitespace-pre-wrap">{task.description}</p>
-          ) : (
-            <p className="text-sm text-muted-foreground italic">No description.</p>
-          )}
-
-          <div className="grid gap-3">
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Activity</h2>
-            <ActivityFeed taskId={id!} />
-          </div>
-
-          <div className="grid gap-3">
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Comments</h2>
-            <CommentSection taskId={id!} />
-          </div>
-        </div>
-
-        {/* Sidebar — metadata + actions */}
-        <div className="grid gap-3">
-          {/* Metadata card */}
+        {/* Sidebar — first in DOM so it appears at top on mobile */}
+        <div className="grid gap-3 lg:col-start-2 lg:row-start-1">
           <div className="rounded-lg border bg-card px-4">
             <SidebarRow
               icon={<User className="size-4" />}
@@ -177,6 +157,26 @@ export default function TaskDetailPage() {
             />
           </div>
         </div>
+
+        {/* Main — description, activity, comments */}
+        <div className="grid gap-6 min-w-0 lg:col-start-1 lg:row-start-1">
+          {task.description ? (
+            <p className="text-muted-foreground whitespace-pre-wrap">{task.description}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No description.</p>
+          )}
+
+          <div className="grid gap-3">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Activity</h2>
+            <ActivityFeed taskId={id!} />
+          </div>
+
+          <div className="grid gap-3">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Comments</h2>
+            <CommentSection taskId={id!} />
+          </div>
+        </div>
+
       </div>
     </div>
   )

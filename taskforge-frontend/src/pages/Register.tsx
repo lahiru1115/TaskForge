@@ -56,7 +56,7 @@ export default function RegisterPage() {
 
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
-          <AppLogo size={40} />
+          <AppLogo size={32} />
           <span className="text-2xl font-bold tracking-tight">TaskForge</span>
         </div>
 
@@ -93,7 +93,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile-only logo */}
           <div className="lg:hidden flex items-center justify-center gap-2">
-            <AppLogo size={36} />
+            <AppLogo size={28} />
             <span className="text-xl font-bold">TaskForge</span>
           </div>
 

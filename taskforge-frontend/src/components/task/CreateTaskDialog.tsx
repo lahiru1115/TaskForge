@@ -13,8 +13,18 @@ import {
 import TaskForm from '@/components/task/TaskForm'
 import type { TaskInput } from '@/lib/schemas'
 
-export default function CreateTaskDialog() {
-  const [open, setOpen] = useState(false)
+interface CreateTaskDialogProps {
+  defaultDueDate?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+export default function CreateTaskDialog({ defaultDueDate, open: externalOpen, onOpenChange: externalOnOpenChange }: CreateTaskDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isControlled = externalOpen !== undefined
+  const open = isControlled ? externalOpen : internalOpen
+  const setOpen = isControlled ? (externalOnOpenChange ?? (() => {})) : setInternalOpen
+
   const create = useCreateTask()
 
   async function handleSubmit(values: TaskInput) {
@@ -35,12 +45,14 @@ export default function CreateTaskDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="size-4" />
-          New task
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus className="size-4" />
+            New task
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent
         className="sm:max-w-md"
         onInteractOutside={(e) => e.preventDefault()}
@@ -48,8 +60,12 @@ export default function CreateTaskDialog() {
         <DialogHeader>
           <DialogTitle>New task</DialogTitle>
         </DialogHeader>
-        <TaskForm onSubmit={handleSubmit} submitLabel="Create task" />
+        <TaskForm
+          onSubmit={handleSubmit}
+          submitLabel="Create task"
+          defaultValues={defaultDueDate ? { dueDate: defaultDueDate } : undefined}
+        />
       </DialogContent>
     </Dialog>
-  );
+  )
 }
