@@ -9,10 +9,11 @@ const COOKIE_NAME = 'tf_token';
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 function setAuthCookie(res: Response, token: string) {
+  const prod = process.env.NODE_ENV === 'production';
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: prod,
+    sameSite: prod ? 'none' : 'strict',
     maxAge: COOKIE_MAX_AGE,
     path: '/',
   });
@@ -49,10 +50,11 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function logout(_req: Request, res: Response) {
+  const prod = process.env.NODE_ENV === 'production';
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: prod,
+    sameSite: prod ? 'none' : 'strict',
     path: '/',
   });
   res.json({ message: 'Logged out' });

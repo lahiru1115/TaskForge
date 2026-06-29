@@ -56,7 +56,7 @@ export default function RegisterPage() {
 
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
-          <AppLogo size={40} />
+          <AppLogo size={32} />
           <span className="text-2xl font-bold tracking-tight">TaskForge</span>
         </div>
 
