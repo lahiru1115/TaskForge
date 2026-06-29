@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { LogOut, Sun, Moon, Menu, X } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import AppLogo from '@/components/shared/AppLogo'
 
@@ -86,9 +87,14 @@ export default function Navbar() {
           <Button variant="ghost" size="icon-sm" onClick={toggleDark} aria-label="Toggle theme">
             {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </Button>
-          <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={handleLogout} aria-label="Log out">
-            <LogOut />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={handleLogout} aria-label="Log out">
+                <LogOut />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Log out</TooltipContent>
+          </Tooltip>
           <Button
             variant="ghost"
             size="icon-sm"
