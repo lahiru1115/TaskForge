@@ -2,9 +2,10 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { CheckSquare, Users, Zap, LayoutDashboard } from 'lucide-react'
+import { CheckSquare, Users, Zap } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import api from '@/lib/api'
+import AppLogo from '@/components/shared/AppLogo'
 import { registerSchema, type RegisterInput } from '@/lib/schemas'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -55,9 +56,7 @@ export default function RegisterPage() {
 
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/10 border border-white/[0.07]!">
-            <LayoutDashboard className="w-5 h-5 text-white" />
-          </div>
+          <AppLogo size={40} />
           <span className="text-2xl font-bold tracking-tight">TaskForge</span>
         </div>
 
@@ -94,10 +93,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile-only logo */}
           <div className="lg:hidden flex items-center justify-center gap-2">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}>
-              <LayoutDashboard className="w-5 h-5 text-white" />
-            </div>
+            <AppLogo size={36} />
             <span className="text-xl font-bold">TaskForge</span>
           </div>
 

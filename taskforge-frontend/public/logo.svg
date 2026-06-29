@@ -15,7 +15,7 @@
 
   <!-- Bold checkmark -->
   <path d="M9 25 L19 35 L39 13"
-        stroke="white" stroke-width="7"
+        stroke="white" stroke-width="5.5"
         stroke-linecap="round" stroke-linejoin="round"/>
 
 </svg>

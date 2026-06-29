@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, CheckSquare, Sun, Moon } from 'lucide-react'
+import { LogOut, Sun, Moon } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import AppLogo from '@/components/shared/AppLogo'
 
 const NAV_LINK_CLASS = 'rounded-md px-3 py-1.5 text-sm font-medium transition-colors'
 const ACTIVE_CLASS = 'bg-accent text-accent-foreground'
@@ -47,7 +48,7 @@ export default function Navbar() {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2 font-semibold text-foreground">
-            <CheckSquare className="size-5" />
+            <AppLogo size={24} />
             TaskForge
           </Link>
           <nav className="flex items-center gap-1">
