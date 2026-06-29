@@ -34,11 +34,13 @@ interface StatCardProps {
   value: number | undefined
   icon: React.ElementType
   color: string
+  accent: string
+  blob: string
   loading: boolean
   filter?: Partial<TaskFilters>
 }
 
-function StatCard({ label, value, icon: Icon, color, loading, filter }: StatCardProps) {
+function StatCard({ label, value, icon: Icon, color, accent, blob, loading, filter }: StatCardProps) {
   const navigate = useNavigate()
 
   function handleClick() {
@@ -52,7 +54,8 @@ function StatCard({ label, value, icon: Icon, color, loading, filter }: StatCard
   return (
     <Card
       className={cn(
-        'gap-3 py-5 hover:shadow-md hover:border-primary/20 transition-all duration-200',
+        'relative overflow-hidden gap-3 py-5 border-t-2 hover:shadow-md transition-all duration-200',
+        accent,
         filter !== undefined && 'cursor-pointer',
       )}
       onClick={filter !== undefined ? handleClick : undefined}
@@ -66,6 +69,9 @@ function StatCard({ label, value, icon: Icon, color, loading, filter }: StatCard
           : undefined
       }
     >
+      {/* Corner blob */}
+      <div className={cn('pointer-events-none absolute -bottom-6 -right-6 size-28 rounded-full blur-xl', blob)} />
+
       <CardHeader className="pb-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
@@ -91,6 +97,8 @@ const STATUS_CARDS = [
     label: 'Open',
     icon: Circle,
     color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+    accent: 'border-t-slate-400',
+    blob: 'bg-slate-400/15',
     filter: { status: 'open' } as Partial<TaskFilters>,
   },
   {
@@ -98,6 +106,8 @@ const STATUS_CARDS = [
     label: 'In Progress',
     icon: Clock,
     color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+    accent: 'border-t-blue-500',
+    blob: 'bg-blue-400/15',
     filter: { status: 'in_progress' } as Partial<TaskFilters>,
   },
   {
@@ -105,6 +115,8 @@ const STATUS_CARDS = [
     label: 'Testing',
     icon: FlaskConical,
     color: 'bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300',
+    accent: 'border-t-violet-500',
+    blob: 'bg-violet-400/15',
     filter: { status: 'testing' } as Partial<TaskFilters>,
   },
   {
@@ -112,6 +124,8 @@ const STATUS_CARDS = [
     label: 'Done',
     icon: CheckCircle2,
     color: 'bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-300',
+    accent: 'border-t-green-500',
+    blob: 'bg-green-400/15',
     filter: { status: 'done' } as Partial<TaskFilters>,
   },
 ]
@@ -122,6 +136,8 @@ const PRIORITY_CARDS = [
     label: 'Low Priority',
     icon: ArrowDown,
     color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+    accent: 'border-t-gray-400',
+    blob: 'bg-gray-400/15',
     filter: { priority: 'low' } as Partial<TaskFilters>,
   },
   {
@@ -129,6 +145,8 @@ const PRIORITY_CARDS = [
     label: 'Medium Priority',
     icon: Minus,
     color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300',
+    accent: 'border-t-amber-500',
+    blob: 'bg-amber-400/15',
     filter: { priority: 'medium' } as Partial<TaskFilters>,
   },
   {
@@ -136,6 +154,8 @@ const PRIORITY_CARDS = [
     label: 'High Priority',
     icon: ArrowUp,
     color: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300',
+    accent: 'border-t-red-500',
+    blob: 'bg-red-400/15',
     filter: { priority: 'high' } as Partial<TaskFilters>,
   },
 ]
@@ -179,6 +199,8 @@ export default function DashboardPage() {
             value={stats?.total}
             icon={ClipboardList}
             color="bg-primary/10 text-primary"
+            accent="border-t-primary"
+            blob="bg-primary/10"
             loading={isLoading}
             filter={{}}
           />
@@ -187,6 +209,8 @@ export default function DashboardPage() {
             value={stats?.overdue}
             icon={AlertTriangle}
             color="bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300"
+            accent="border-t-rose-500"
+            blob="bg-rose-400/15"
             loading={isLoading}
             filter={{ sort: 'dueDate' }}
           />
@@ -224,13 +248,15 @@ export default function DashboardPage() {
           By Status
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STATUS_CARDS.map(({ key, label, icon, color, filter }) => (
+          {STATUS_CARDS.map(({ key, label, icon, color, accent, blob, filter }) => (
             <StatCard
               key={key}
               label={label}
               value={stats?.byStatus[key]}
               icon={icon}
               color={color}
+              accent={accent}
+              blob={blob}
               loading={isLoading}
               filter={filter}
             />
@@ -244,13 +270,15 @@ export default function DashboardPage() {
           By Priority
         </h2>
         <div className="grid gap-4 sm:grid-cols-3">
-          {PRIORITY_CARDS.map(({ key, label, icon, color, filter }) => (
+          {PRIORITY_CARDS.map(({ key, label, icon, color, accent, blob, filter }) => (
             <StatCard
               key={key}
               label={label}
               value={stats?.byPriority[key]}
               icon={icon}
               color={color}
+              accent={accent}
+              blob={blob}
               loading={isLoading}
               filter={filter}
             />
