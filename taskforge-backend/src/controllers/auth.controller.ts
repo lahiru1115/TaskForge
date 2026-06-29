@@ -1,9 +1,17 @@
 import { Request, Response } from 'express';
 import { User, hashPassword } from '../models/User';
+import { LoginEvent } from '../models/LoginEvent';
 import { signToken } from '../utils/jwt';
 import { publicUser } from '../utils/serialize';
 import { ApiError } from '../utils/ApiError';
 import { RegisterInput, LoginInput } from '../validators/auth.validator';
+
+const DEMO_EMAILS = new Set([
+  'admin@taskforge.com',
+  'jane@taskforge.com',
+  'john@taskforge.com',
+  'sarah@taskforge.com',
+]);
 
 const COOKIE_NAME = 'tf_token';
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -46,6 +54,17 @@ export async function login(req: Request, res: Response) {
 
   const token = signToken({ sub: user._id.toString(), role: user.role });
   setAuthCookie(res, token);
+
+  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ?? req.ip ?? 'unknown';
+  LoginEvent.create({
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    ip,
+    userAgent: req.headers['user-agent'] ?? 'unknown',
+    isDemoAccount: DEMO_EMAILS.has(user.email),
+  }).catch(() => {});
+
   res.json({ user: publicUser(user) });
 }
 

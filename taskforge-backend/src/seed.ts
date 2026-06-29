@@ -4,6 +4,7 @@ import { User, hashPassword } from './models/User';
 import { Task, TASK_STATUSES, type TaskStatus, type TaskPriority } from './models/Task';
 import { Activity, type ActivityType } from './models/Activity';
 import { Comment } from './models/Comment';
+import { LoginEvent } from './models/LoginEvent';
 
 const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
@@ -23,6 +24,7 @@ async function seed() {
   await Task.deleteMany({});
   await Activity.deleteMany({});
   await Comment.deleteMany({});
+  await LoginEvent.deleteMany({});
 
   const [adminHash, janeHash, johnHash, sarahHash] = await Promise.all([
     hashPassword('admin123'),
