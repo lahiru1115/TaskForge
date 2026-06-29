@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, Sun, Moon } from 'lucide-react'
+import { LogOut, Sun, Moon, Menu, X } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -26,6 +26,9 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [dark, toggleDark] = useDarkMode()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => { setMenuOpen(false) }, [location.pathname])
 
   // On task detail pages, highlight whichever list view the user came from
   const isTaskDetail = /^\/tasks\/[^/]+$/.test(location.pathname)
@@ -51,7 +54,7 @@ export default function Navbar() {
             <AppLogo size={24} />
             TaskForge
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="hidden sm:flex items-center gap-1">
             <NavLink to="/" end className={navClass('/')}>
               Dashboard
             </NavLink>
@@ -74,7 +77,7 @@ export default function Navbar() {
                 {user.name}
               </Link>
               {isAdmin && (
-                <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                <span className="hidden sm:inline rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
                   Admin
                 </span>
               )}
@@ -83,11 +86,49 @@ export default function Navbar() {
           <Button variant="ghost" size="icon-sm" onClick={toggleDark} aria-label="Toggle theme">
             {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </Button>
-          <Button variant="ghost" size="icon-sm" onClick={handleLogout} aria-label="Log out">
+          <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={handleLogout} aria-label="Log out">
             <LogOut />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="sm:hidden"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
           </Button>
         </div>
       </div>
+
+      {/* Mobile nav */}
+      {menuOpen && (
+        <div className="sm:hidden border-t bg-background px-4 py-3 flex flex-col gap-1">
+          <NavLink to="/" end className={navClass('/')}>Dashboard</NavLink>
+          <NavLink to="/tasks" end className={navClass('/tasks')}>Tasks</NavLink>
+          <NavLink to="/board" end className={navClass('/board')}>Board</NavLink>
+          {user && (
+            <div className="mt-2 pt-2 border-t flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/profile"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {user.name}
+                </Link>
+                {isAdmin && (
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                    Admin
+                  </span>
+                )}
+              </div>
+              <Button variant="ghost" size="icon-sm" onClick={handleLogout} aria-label="Log out">
+                <LogOut />
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </header>
   )
 }
