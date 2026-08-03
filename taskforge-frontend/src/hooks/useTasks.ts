@@ -104,6 +104,17 @@ export function useDeleteTask() {
   })
 }
 
+export function useRestoreTask() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/api/tasks/${id}/restore`)
+      return data.task as Task
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+  })
+}
+
 export function useMoveTask() {
   const qc = useQueryClient()
   return useMutation({

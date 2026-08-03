@@ -29,7 +29,7 @@ export default function DeleteTaskDialog({ onConfirm }: DeleteTaskDialogProps) {
         <AlertDialogHeader>
           <AlertDialogTitle>Delete task?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. The task will be permanently deleted.
+            The task will be deleted. You'll have a few seconds to undo before it's gone for good.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

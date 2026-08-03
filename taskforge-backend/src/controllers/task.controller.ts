@@ -15,9 +15,8 @@ type ValidatedReq = Request & { validatedQuery: unknown };
 type TaskFilter = Record<string, unknown>;
 
 function visibilityFilter(user: IUser): TaskFilter {
-  if (user.role === 'admin') return {};
-  const id = user._id;
-  return { $or: [{ createdBy: id }, { assignedTo: id }] };
+  const base = user.role === 'admin' ? {} : { $or: [{ createdBy: user._id }, { assignedTo: user._id }] };
+  return { ...base, deletedAt: null };
 }
 
 function canView(task: ITask, user: IUser): boolean {
@@ -152,7 +151,7 @@ export async function getTask(req: Request, res: Response) {
   const { id } = req.params;
   const task = await Task.findById(id);
 
-  if (!task || !canView(task, req.user!)) throw ApiError.notFound('Task not found');
+  if (!task || task.deletedAt || !canView(task, req.user!)) throw ApiError.notFound('Task not found');
 
   await task.populate([
     { path: 'createdBy', select: 'name email' },
@@ -168,7 +167,7 @@ export async function updateTask(req: Request, res: Response) {
   const user = req.user!;
 
   const task = await Task.findById(id);
-  if (!task || !canView(task, user)) throw ApiError.notFound('Task not found');
+  if (!task || task.deletedAt || !canView(task, user)) throw ApiError.notFound('Task not found');
 
   if (!canManage(task, user)) {
     const keys = Object.keys(body);
@@ -238,11 +237,30 @@ export async function deleteTask(req: Request, res: Response) {
   const user = req.user!;
 
   const task = await Task.findById(id);
-  if (!task || !canView(task, user)) throw ApiError.notFound('Task not found');
+  if (!task || task.deletedAt || !canView(task, user)) throw ApiError.notFound('Task not found');
   if (!canManage(task, user)) throw ApiError.forbidden('Insufficient permissions');
 
-  await task.deleteOne();
+  task.deletedAt = new Date();
+  await task.save();
   res.status(204).send();
+}
+
+export async function restoreTask(req: Request, res: Response) {
+  const { id } = req.params;
+  const user = req.user!;
+
+  const task = await Task.findById(id);
+  if (!task || !task.deletedAt || !canView(task, user)) throw ApiError.notFound('Task not found');
+  if (!canManage(task, user)) throw ApiError.forbidden('Insufficient permissions');
+
+  task.deletedAt = null;
+  await task.save();
+  await task.populate([
+    { path: 'createdBy', select: 'name email' },
+    { path: 'assignedTo', select: 'name email' },
+  ]);
+
+  res.json({ task });
 }
 
 export async function getTaskActivity(req: Request, res: Response) {
@@ -250,7 +268,9 @@ export async function getTaskActivity(req: Request, res: Response) {
   const user = req.user!;
 
   const task = await Task.findById(id).lean();
-  if (!task || !canView(task as unknown as ITask, user)) throw ApiError.notFound('Task not found');
+  if (!task || (task as unknown as ITask).deletedAt || !canView(task as unknown as ITask, user)) {
+    throw ApiError.notFound('Task not found');
+  }
 
   const activities = await Activity.find({ task: id })
     .sort({ createdAt: -1 })

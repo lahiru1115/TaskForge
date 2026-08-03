@@ -8,8 +8,8 @@ import { AddCommentInput } from '../validators/comment.validator';
 type TaskFilter = Record<string, unknown>;
 
 function visibilityFilter(user: IUser): TaskFilter {
-  if (user.role === 'admin') return {};
-  return { $or: [{ createdBy: user._id }, { assignedTo: user._id }] };
+  const base = user.role === 'admin' ? {} : { $or: [{ createdBy: user._id }, { assignedTo: user._id }] };
+  return { ...base, deletedAt: null };
 }
 
 async function resolveTask(taskId: string, user: IUser) {

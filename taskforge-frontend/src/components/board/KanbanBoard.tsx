@@ -159,9 +159,28 @@ export default function KanbanBoard({ tasks }: KanbanBoardProps) {
       originalTask.rank === newRank
     ) return
 
+    const prevStatus = originalTask?.status
+    const prevRank = originalTask?.rank
+    const statusChanged = !!originalTask && prevStatus !== destCol
+
     move.mutate(
       { id: activeId, status: destCol, rank: newRank },
       {
+        onSuccess: () => {
+          if (!statusChanged || !prevStatus || !prevRank) return
+          toast(`Moved to ${COLUMN_CONFIG[destCol].label}`, {
+            duration: 5000,
+            action: {
+              label: 'Undo',
+              onClick: () => {
+                move.mutate(
+                  { id: activeId, status: prevStatus, rank: prevRank },
+                  { onError: () => toast.error('Failed to undo move') },
+                )
+              },
+            },
+          })
+        },
         onError: () => {
           toast.error('Failed to move task')
           setColumns(buildColumns(tasks))

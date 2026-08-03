@@ -21,6 +21,7 @@ export interface ITask extends Document {
   rank: string;
   createdBy: Types.ObjectId;
   assignedTo: Types.ObjectId | null;
+  deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +46,7 @@ const taskSchema = new Schema<ITask>(
       default: null,
       index: true,
     },
+    deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true }
 );

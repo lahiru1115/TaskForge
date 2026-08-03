@@ -15,6 +15,7 @@ import {
   getTask,
   updateTask,
   deleteTask,
+  restoreTask,
   getTaskActivity,
 } from '../controllers/task.controller';
 import { listComments, addComment, deleteComment } from '../controllers/comment.controller';
@@ -34,6 +35,7 @@ router.patch(
   asyncHandler(updateTask)
 );
 router.delete('/:id', validate({ params: idParamSchema }), asyncHandler(deleteTask));
+router.post('/:id/restore', validate({ params: idParamSchema }), asyncHandler(restoreTask));
 router.get('/:id/activity', validate({ params: idParamSchema }), asyncHandler(getTaskActivity));
 router.get('/:id/comments', validate({ params: idParamSchema }), asyncHandler(listComments));
 router.post('/:id/comments', validate({ params: idParamSchema, body: addCommentSchema }), asyncHandler(addComment));

@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, CalendarDays, User, Clock } from 'lucide-react'
 import { toast } from 'sonner'
-import { useTask, useDeleteTask } from '@/hooks/useTasks'
+import { useTask, useDeleteTask, useRestoreTask } from '@/hooks/useTasks'
 import { useAuth } from '@/context/AuthContext'
 import StatusBadge from '@/components/shared/StatusBadge'
 import PriorityBadge from '@/components/shared/PriorityBadge'
@@ -39,6 +39,7 @@ export default function TaskDetailPage() {
 
   const { data: task, isLoading, isError } = useTask(id!)
   const remove = useDeleteTask()
+  const restore = useRestoreTask()
 
   if (isLoading) {
     return (
@@ -85,8 +86,19 @@ export default function TaskDetailPage() {
   async function handleDelete() {
     try {
       await remove.mutateAsync(id!)
-      toast.success('Task deleted')
       navigate(-1)
+      toast('Task deleted', {
+        duration: 5000,
+        action: {
+          label: 'Undo',
+          onClick: () => {
+            restore.mutate(id!, {
+              onSuccess: () => toast.success('Task restored'),
+              onError: () => toast.error('Failed to restore task'),
+            })
+          },
+        },
+      })
     } catch {
       toast.error('Failed to delete task')
     }
