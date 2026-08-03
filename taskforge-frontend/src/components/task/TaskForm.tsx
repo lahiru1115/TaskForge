@@ -42,6 +42,28 @@ export default function TaskForm({
 
   const canEditAll = !statusOnly
 
+  const statusField = (
+    <Field>
+      <FieldLabel>Status</FieldLabel>
+      <FieldContent>
+        <Select value={form.watch('status')} onValueChange={(value: string) => form.setValue('status', value as TaskInput['status'])}>
+          <SelectTrigger className="w-full" aria-invalid={!!form.formState.errors.status}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="open">Open</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="testing">Testing</SelectItem>
+            <SelectItem value="done">Done</SelectItem>
+          </SelectContent>
+        </Select>
+      </FieldContent>
+      {form.formState.errors.status && (
+        <FieldError>{form.formState.errors.status.message}</FieldError>
+      )}
+    </Field>
+  )
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup className="gap-4">
@@ -110,54 +132,42 @@ export default function TaskForm({
               </Field>
             </div>
 
-            {isAdmin && (
-              <Field>
-                <FieldLabel>Assign to</FieldLabel>
-                <FieldContent>
-                  <Select
-                    value={form.watch('assignedTo') || '_none'}
-                    onValueChange={(v: string) => form.setValue('assignedTo', v === '_none' ? '' : (v as string))}
-                  >
-                    <SelectTrigger className="w-full" aria-invalid={!!form.formState.errors.assignedTo}>
-                      <SelectValue placeholder="Unassigned" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="_none">Unassigned</SelectItem>
-                      {users.map((u) => (
-                        <SelectItem key={u._id} value={u._id}>
-                          {u.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FieldContent>
-                {form.formState.errors.assignedTo && (
-                  <FieldError>{form.formState.errors.assignedTo.message}</FieldError>
-                )}
-              </Field>
+            {isAdmin ? (
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel>Assign to</FieldLabel>
+                  <FieldContent>
+                    <Select
+                      value={form.watch('assignedTo') || '_none'}
+                      onValueChange={(v: string) => form.setValue('assignedTo', v === '_none' ? '' : (v as string))}
+                    >
+                      <SelectTrigger className="w-full" aria-invalid={!!form.formState.errors.assignedTo}>
+                        <SelectValue placeholder="Unassigned" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">Unassigned</SelectItem>
+                        {users.map((u) => (
+                          <SelectItem key={u._id} value={u._id}>
+                            {u.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FieldContent>
+                  {form.formState.errors.assignedTo && (
+                    <FieldError>{form.formState.errors.assignedTo.message}</FieldError>
+                  )}
+                </Field>
+
+                {statusField}
+              </div>
+            ) : (
+              statusField
             )}
           </>
         )}
 
-        <Field>
-          <FieldLabel>Status</FieldLabel>
-          <FieldContent>
-            <Select value={form.watch('status')} onValueChange={(value: string) => form.setValue('status', value as TaskInput['status'])}>
-              <SelectTrigger className="w-full" aria-invalid={!!form.formState.errors.status}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="testing">Testing</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
-              </SelectContent>
-            </Select>
-          </FieldContent>
-          {form.formState.errors.status && (
-            <FieldError>{form.formState.errors.status.message}</FieldError>
-          )}
-        </Field>
+        {!canEditAll && statusField}
 
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Saving…' : submitLabel}
