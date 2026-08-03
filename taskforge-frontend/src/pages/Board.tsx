@@ -47,11 +47,21 @@ export default function BoardPage() {
         <div className="relative flex-1 min-w-45">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
           <Input
-            className="pl-8"
+            className="pl-8 pr-8"
             placeholder="Search tasks…"
             value={filters.search ?? ''}
             onChange={(e) => set('search', e.target.value)}
           />
+          {filters.search && (
+            <button
+              type="button"
+              onClick={() => set('search', '')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X className="size-4" />
+            </button>
+          )}
         </div>
 
         <Select
