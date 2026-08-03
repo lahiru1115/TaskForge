@@ -1,4 +1,5 @@
-import { X, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { X, Trash2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -43,38 +44,38 @@ export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
   const bulkDelete = useBulkDeleteTasks()
   const restore = useRestoreTask()
 
+  const [pendingStatus, setPendingStatus] = useState('')
+  const [pendingAssignee, setPendingAssignee] = useState('')
+
   const manageable = tasks.filter((t) => isAdmin || t.createdBy._id === user?._id)
   const allIds = tasks.map((t) => t._id)
   const manageableIds = manageable.map((t) => t._id)
   const restrictedCount = tasks.length - manageable.length
 
-  function handleStatusChange(status: string) {
-    bulkUpdate.mutate(
-      { ids: allIds, status: status as Task['status'] },
-      {
-        onSuccess: () => {
-          toast.success(`Updated status for ${pluralTask(allIds.length)}`)
-          onClear()
-        },
-        onError: () => toast.error('Failed to update tasks'),
-      },
-    )
-  }
+  const canApply = pendingStatus !== '' || pendingAssignee !== ''
 
-  function handleAssigneeChange(userId: string) {
-    if (manageableIds.length === 0) return
-    const assignedTo = userId === UNASSIGN ? null : userId
-    const assignedToUser = userId === UNASSIGN ? null : (users.find((u) => u._id === userId) ?? null)
-    bulkUpdate.mutate(
-      { ids: manageableIds, assignedTo, assignedToUser },
-      {
-        onSuccess: () => {
-          toast.success(`Reassigned ${pluralTask(manageableIds.length)}`)
-          onClear()
-        },
-        onError: () => toast.error('Failed to reassign tasks'),
-      },
-    )
+  async function handleApply() {
+    const jobs: Promise<unknown>[] = []
+
+    if (pendingStatus) {
+      jobs.push(bulkUpdate.mutateAsync({ ids: allIds, status: pendingStatus as Task['status'] }))
+    }
+    if (pendingAssignee && manageableIds.length > 0) {
+      const assignedTo = pendingAssignee === UNASSIGN ? null : pendingAssignee
+      const assignedToUser = pendingAssignee === UNASSIGN ? null : (users.find((u) => u._id === pendingAssignee) ?? null)
+      jobs.push(bulkUpdate.mutateAsync({ ids: manageableIds, assignedTo, assignedToUser }))
+    }
+    if (jobs.length === 0) return
+
+    try {
+      await Promise.all(jobs)
+      toast.success(`Updated ${pluralTask(tasks.length)}`)
+      setPendingStatus('')
+      setPendingAssignee('')
+      onClear()
+    } catch {
+      toast.error('Failed to update tasks')
+    }
   }
 
   function handleDelete() {
@@ -103,7 +104,7 @@ export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
     <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-4 py-2.5">
       <span className="text-sm font-medium">{pluralTask(tasks.length)} selected</span>
 
-      <Select onValueChange={handleStatusChange}>
+      <Select value={pendingStatus} onValueChange={setPendingStatus}>
         <SelectTrigger className="h-8 w-40">
           <SelectValue placeholder="Change status" />
         </SelectTrigger>
@@ -116,7 +117,7 @@ export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
         </SelectContent>
       </Select>
 
-      <Select onValueChange={handleAssigneeChange} disabled={manageableIds.length === 0}>
+      <Select value={pendingAssignee} onValueChange={setPendingAssignee} disabled={manageableIds.length === 0}>
         <SelectTrigger className="h-8 w-40">
           <SelectValue placeholder="Reassign" />
         </SelectTrigger>
@@ -129,6 +130,16 @@ export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
           ))}
         </SelectContent>
       </Select>
+
+      <Button
+        variant="default"
+        size="sm"
+        disabled={!canApply || bulkUpdate.isPending}
+        onClick={handleApply}
+      >
+        <Check className="size-4" />
+        Apply
+      </Button>
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
