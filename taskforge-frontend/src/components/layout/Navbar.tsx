@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, Sun, Moon, Menu, X, CalendarDays, LayoutDashboard, ClipboardList, Kanban } from 'lucide-react'
+import { LogOut, Sun, Moon, Menu, X, CalendarDays, LayoutDashboard, ClipboardList, Kanban, Trash2 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/tasks',    label: 'Tasks',     Icon: ClipboardList,   end: true  },
   { to: '/board',    label: 'Board',     Icon: Kanban,          end: true  },
   { to: '/calendar', label: 'Calendar',  Icon: CalendarDays,    end: true  },
+  { to: '/trash',    label: 'Trash',     Icon: Trash2,          end: true  },
 ] as const
 
 function useDarkMode() {

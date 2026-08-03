@@ -9,6 +9,7 @@ import TaskDetailPage from '@/pages/TaskDetail'
 import ProfilePage from '@/pages/Profile'
 import BoardPage from '@/pages/Board'
 import CalendarPage from '@/pages/Calendar'
+import TrashPage from '@/pages/Trash'
 
 function AppLayout() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/board" element={<BoardPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/trash" element={<TrashPage />} />
         </Route>
       </Route>
 

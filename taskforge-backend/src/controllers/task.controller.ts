@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { generateKeyBetween, generateNKeysBetween } from 'fractional-indexing';
 import { Task, ITask, TASK_STATUSES, TaskPriority, TaskStatus } from '../models/Task';
 import { Activity } from '../models/Activity';
+import { Comment } from '../models/Comment';
 import { ApiError } from '../utils/ApiError';
 import { IUser } from '../models/User';
 import {
@@ -17,6 +18,11 @@ type TaskFilter = Record<string, unknown>;
 function visibilityFilter(user: IUser): TaskFilter {
   const base = user.role === 'admin' ? {} : { $or: [{ createdBy: user._id }, { assignedTo: user._id }] };
   return { ...base, deletedAt: null };
+}
+
+function trashVisibilityFilter(user: IUser): TaskFilter {
+  const base = user.role === 'admin' ? {} : { createdBy: user._id };
+  return { ...base, deletedAt: { $ne: null } };
 }
 
 function canView(task: ITask, user: IUser): boolean {
@@ -80,6 +86,18 @@ export async function listTasks(req: Request, res: Response) {
       pages: Math.ceil(total / limit),
     },
   });
+}
+
+export async function listTrash(req: Request, res: Response) {
+  const user = req.user!;
+
+  const tasks = await Task.find(trashVisibilityFilter(user))
+    .sort({ deletedAt: -1 })
+    .limit(200)
+    .populate('createdBy', 'name email')
+    .populate('assignedTo', 'name email');
+
+  res.json({ tasks });
 }
 
 export async function getTaskStats(req: Request, res: Response) {
@@ -261,6 +279,23 @@ export async function restoreTask(req: Request, res: Response) {
   ]);
 
   res.json({ task });
+}
+
+export async function permanentlyDeleteTask(req: Request, res: Response) {
+  const { id } = req.params;
+  const user = req.user!;
+
+  const task = await Task.findById(id);
+  if (!task || !task.deletedAt || !canView(task, user)) throw ApiError.notFound('Task not found');
+  if (!canManage(task, user)) throw ApiError.forbidden('Insufficient permissions');
+
+  await Promise.all([
+    Activity.deleteMany({ task: task._id }),
+    Comment.deleteMany({ task: task._id }),
+  ]);
+  await task.deleteOne();
+
+  res.status(204).send();
 }
 
 export async function getTaskActivity(req: Request, res: Response) {

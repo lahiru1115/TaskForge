@@ -59,8 +59,8 @@ Role rules live in `controllers/task.controller.ts`:
 - [x] Comments: per-task `Comment` collection (not subdocument); author and admin can delete; rendered below activity on task detail; Ctrl/⌘+Enter to submit
 
 ### Phase 4 — Remaining
-- [ ] Undo via toast: 5-second undo after delete/status drag using soft-delete (`deletedAt`)
-- [ ] Trash page (`/trash`): admin/creator can restore or permanently delete soft-deleted tasks
+- [x] Undo via toast: 5-second undo after delete/status drag using soft-delete (`deletedAt`)
+- [x] Trash page (`/trash`): admin/creator can restore or permanently delete soft-deleted tasks
 - [ ] Bulk actions: checkbox-select rows in task table → change status/assignee/delete for multiple tasks at once (one batched optimistic update with rollback)
 - [ ] Command palette (⌘K): fuzzy-search tasks and jump to actions; client-side over TanStack Query cache; shadcn `Command` component
 

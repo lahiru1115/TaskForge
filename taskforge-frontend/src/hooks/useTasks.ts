@@ -18,6 +18,7 @@ export interface Task {
   rank: string
   createdBy: TaskUser
   assignedTo?: TaskUser | null
+  deletedAt?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -111,7 +112,35 @@ export function useRestoreTask() {
       const { data } = await api.post(`/api/tasks/${id}/restore`)
       return data.task as Task
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      qc.invalidateQueries({ queryKey: ['trash'] })
+    },
+  })
+}
+
+export interface TrashResponse {
+  tasks: Task[]
+}
+
+export function useTrash() {
+  return useQuery<TrashResponse>({
+    queryKey: ['trash'],
+    queryFn: async () => {
+      const { data } = await api.get('/api/tasks/trash')
+      return data
+    },
+  })
+}
+
+export function usePermanentlyDeleteTask() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/api/tasks/${id}/permanent`)
+      return id
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['trash'] }),
   })
 }
 
