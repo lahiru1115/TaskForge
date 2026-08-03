@@ -5,11 +5,10 @@ import { useUsers } from '@/hooks/useUsers'
 import { useAuth } from '@/context/AuthContext'
 import KanbanBoard from '@/components/board/KanbanBoard'
 import CreateTaskDialog from '@/components/task/CreateTaskDialog'
+import { FilterSelect } from '@/components/task/FilterBar'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
 
 const PRIORITY_OPTIONS = [
   { value: 'low', label: 'Low' },
@@ -64,36 +63,20 @@ export default function BoardPage() {
           )}
         </div>
 
-        <Select
-          value={filters.priority || '_all'}
-          onValueChange={(v) => set('priority', v === '_all' ? '' : v)}
-        >
-          <SelectTrigger className={cn('w-35', !filters.priority && 'text-muted-foreground')}>
-            <SelectValue placeholder="Priority" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="_all">Priority</SelectItem>
-            {PRIORITY_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <FilterSelect
+          value={filters.priority}
+          placeholder="Priority"
+          options={PRIORITY_OPTIONS}
+          onChange={(v) => set('priority', v)}
+        />
 
         {isAdmin && (
-          <Select
-            value={filters.assignedTo || '_all'}
-            onValueChange={(v) => set('assignedTo', v === '_all' ? '' : v)}
-          >
-            <SelectTrigger className={cn('w-35', !filters.assignedTo && 'text-muted-foreground')}>
-              <SelectValue placeholder="Assignee" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="_all">Assignee</SelectItem>
-              {users.map((u) => (
-                <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <FilterSelect
+            value={filters.assignedTo}
+            placeholder="Assignee"
+            options={users.map((u) => ({ value: u._id, label: u.name }))}
+            onChange={(v) => set('assignedTo', v)}
+          />
         )}
 
         {hasActiveFilters(filters) && (

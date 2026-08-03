@@ -33,23 +33,29 @@ const SORT_OPTIONS = [
   { value: '-priority',  label: 'Priority ↓' },
 ]
 
-function FilterSelect({
+export function FilterSelect({
   value,
   placeholder,
   options,
   onChange,
+  clearable = true,
 }: {
   value: string | undefined
   placeholder: string
   options: { value: string; label: string }[]
   onChange: (v: string) => void
+  clearable?: boolean
 }) {
   // Map empty/undefined to '_all' so Radix always has a valid non-empty value
   const selectValue = value || '_all'
+  const isActive = selectValue !== '_all'
 
   return (
     <Select value={selectValue} onValueChange={(v) => onChange(v === '_all' ? '' : v)}>
-      <SelectTrigger className={cn('w-35', selectValue === '_all' && 'text-muted-foreground')}>
+      <SelectTrigger
+        className={cn('w-35', !isActive && 'text-muted-foreground')}
+        onClear={clearable && isActive ? () => onChange('') : undefined}
+      >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -128,6 +134,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         placeholder="Sort"
         options={SORT_OPTIONS}
         onChange={(v) => set('sort', v)}
+        clearable={false}
       />
 
       {hasActiveFilters(filters) && (

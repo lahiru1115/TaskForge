@@ -105,7 +105,10 @@ export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
       <span className="text-sm font-medium">{pluralTask(tasks.length)} selected</span>
 
       <Select value={pendingStatus} onValueChange={setPendingStatus}>
-        <SelectTrigger className="h-8 w-40">
+        <SelectTrigger
+          className="h-8 w-40"
+          onClear={pendingStatus !== '' ? () => setPendingStatus('') : undefined}
+        >
           <SelectValue placeholder="Change status" />
         </SelectTrigger>
         <SelectContent>
@@ -118,7 +121,10 @@ export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
       </Select>
 
       <Select value={pendingAssignee} onValueChange={setPendingAssignee} disabled={manageableIds.length === 0}>
-        <SelectTrigger className="h-8 w-40">
+        <SelectTrigger
+          className="h-8 w-40"
+          onClear={pendingAssignee !== '' ? () => setPendingAssignee('') : undefined}
+        >
           <SelectValue placeholder="Reassign" />
         </SelectTrigger>
         <SelectContent>
