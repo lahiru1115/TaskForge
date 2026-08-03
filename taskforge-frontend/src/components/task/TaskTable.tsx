@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom'
 import { CalendarDays } from 'lucide-react'
 import StatusBadge from '@/components/shared/StatusBadge'
 import PriorityBadge from '@/components/shared/PriorityBadge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/context/AuthContext'
+import { cn } from '@/lib/utils'
 import type { Task } from '@/hooks/useTasks'
 
 function fmt(iso: string) {
@@ -13,14 +15,30 @@ function isOverdue(task: Task) {
   return task.dueDate && task.status !== 'done' && new Date(task.dueDate) < new Date()
 }
 
-export default function TaskTable({ tasks }: { tasks: Task[] }) {
+interface TaskTableProps {
+  tasks: Task[]
+  selected: Set<string>
+  onToggle: (id: string) => void
+  onToggleAll: (checked: boolean) => void
+}
+
+export default function TaskTable({ tasks, selected, onToggle, onToggleAll }: TaskTableProps) {
   const { isAdmin } = useAuth()
+  const allSelected = tasks.length > 0 && tasks.every((t) => selected.has(t._id))
+  const someSelected = !allSelected && tasks.some((t) => selected.has(t._id))
 
   return (
     <div className="overflow-x-auto rounded-lg border">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b bg-muted/50 text-muted-foreground">
+            <th className="w-10 px-4 py-3">
+              <Checkbox
+                checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+                onCheckedChange={(checked) => onToggleAll(checked === true)}
+                aria-label="Select all tasks"
+              />
+            </th>
             <th className="px-4 py-3 text-left font-medium">Title</th>
             <th className="px-4 py-3 text-left font-medium">Status</th>
             <th className="px-4 py-3 text-left font-medium">Priority</th>
@@ -30,7 +48,20 @@ export default function TaskTable({ tasks }: { tasks: Task[] }) {
         </thead>
         <tbody>
           {tasks.map((task) => (
-            <tr key={task._id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+            <tr
+              key={task._id}
+              className={cn(
+                'border-b last:border-0 hover:bg-muted/30 transition-colors',
+                selected.has(task._id) && 'bg-accent/40',
+              )}
+            >
+              <td className="px-4 py-3">
+                <Checkbox
+                  checked={selected.has(task._id)}
+                  onCheckedChange={() => onToggle(task._id)}
+                  aria-label={`Select ${task.title}`}
+                />
+              </td>
               <td className="px-4 py-3">
                 <Link
                   to={`/tasks/${task._id}`}

@@ -105,6 +105,88 @@ export function useDeleteTask() {
   })
 }
 
+export interface BulkUpdatePayload {
+  ids: string[]
+  status?: Task['status']
+  assignedTo?: string | null
+  /** Optimistic-only — the full user object to show immediately; not sent to the server. */
+  assignedToUser?: TaskUser | null
+}
+
+export function useBulkUpdateTasks() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ assignedToUser: _assignedToUser, ...body }: BulkUpdatePayload) => {
+      const { data } = await api.patch('/api/tasks/bulk', body)
+      return data.tasks as Task[]
+    },
+    onMutate: async ({ ids, status, assignedTo, assignedToUser }) => {
+      await qc.cancelQueries({ queryKey: ['tasks'] })
+      const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['tasks'] })
+      const idSet = new Set(ids)
+      qc.setQueriesData<TasksResponse>({ queryKey: ['tasks'] }, (old) => {
+        if (!old?.tasks) return old
+        return {
+          ...old,
+          tasks: old.tasks.map((t) =>
+            idSet.has(t._id)
+              ? {
+                  ...t,
+                  ...(status ? { status } : {}),
+                  ...(assignedTo !== undefined ? { assignedTo: assignedToUser ?? null } : {}),
+                }
+              : t,
+          ),
+        }
+      })
+      return { snapshot }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.snapshot) {
+        for (const [key, data] of ctx.snapshot) {
+          qc.setQueryData(key, data)
+        }
+      }
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+  })
+}
+
+export function useBulkDeleteTasks() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      await api.delete('/api/tasks/bulk', { data: { ids } })
+      return ids
+    },
+    onMutate: async (ids) => {
+      await qc.cancelQueries({ queryKey: ['tasks'] })
+      const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['tasks'] })
+      const idSet = new Set(ids)
+      qc.setQueriesData<TasksResponse>({ queryKey: ['tasks'] }, (old) => {
+        if (!old?.tasks) return old
+        return {
+          ...old,
+          tasks: old.tasks.filter((t) => !idSet.has(t._id)),
+          pagination: { ...old.pagination, total: Math.max(0, old.pagination.total - idSet.size) },
+        }
+      })
+      return { snapshot }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.snapshot) {
+        for (const [key, data] of ctx.snapshot) {
+          qc.setQueryData(key, data)
+        }
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      qc.invalidateQueries({ queryKey: ['trash'] })
+    },
+  })
+}
+
 export function useRestoreTask() {
   const qc = useQueryClient()
   return useMutation({

@@ -7,6 +7,8 @@ import {
   updateTaskSchema,
   listTasksQuerySchema,
   idParamSchema,
+  bulkIdsSchema,
+  bulkUpdateSchema,
 } from '../validators/task.validator';
 import {
   listTasks,
@@ -15,7 +17,9 @@ import {
   createTask,
   getTask,
   updateTask,
+  bulkUpdateTasks,
   deleteTask,
+  bulkDeleteTasks,
   restoreTask,
   permanentlyDeleteTask,
   getTaskActivity,
@@ -29,6 +33,8 @@ router.use(authenticate);
 
 router.get('/stats', asyncHandler(getTaskStats));
 router.get('/trash', asyncHandler(listTrash));
+router.patch('/bulk', validate({ body: bulkUpdateSchema }), asyncHandler(bulkUpdateTasks));
+router.delete('/bulk', validate({ body: bulkIdsSchema }), asyncHandler(bulkDeleteTasks));
 router.get('/', validate({ query: listTasksQuerySchema }), asyncHandler(listTasks));
 router.post('/', validate({ body: createTaskSchema }), asyncHandler(createTask));
 router.get('/:id', validate({ params: idParamSchema }), asyncHandler(getTask));

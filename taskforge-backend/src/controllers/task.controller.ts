@@ -9,6 +9,8 @@ import {
   CreateTaskInput,
   UpdateTaskInput,
   ListTasksQuery,
+  BulkIdsInput,
+  BulkUpdateInput,
 } from '../validators/task.validator';
 
 type ValidatedReq = Request & { validatedQuery: unknown };
@@ -250,6 +252,60 @@ export async function updateTask(req: Request, res: Response) {
   res.json({ task });
 }
 
+export async function bulkUpdateTasks(req: Request, res: Response) {
+  const { ids, status, assignedTo } = req.body as BulkUpdateInput;
+  const user = req.user!;
+
+  const tasks = await Task.find({ _id: { $in: ids }, ...visibilityFilter(user) });
+  if (tasks.length !== ids.length) throw ApiError.notFound('One or more tasks not found');
+
+  const changesAssignee = assignedTo !== undefined;
+  if (changesAssignee && tasks.some((t) => !canManage(t, user))) {
+    throw ApiError.forbidden('You may only reassign tasks you created');
+  }
+
+  const oldValues = new Map(
+    tasks.map((t) => [t._id.toString(), { status: t.status, assignedTo: t.assignedTo?.toString() ?? null }])
+  );
+
+  for (const task of tasks) {
+    if (status) task.status = status as TaskStatus;
+    if (changesAssignee) task.assignedTo = (assignedTo ?? null) as unknown as ITask['assignedTo'];
+    await task.save();
+  }
+
+  await Task.populate(tasks, [
+    { path: 'createdBy', select: 'name email' },
+    { path: 'assignedTo', select: 'name email' },
+  ]);
+
+  const actorId = user._id;
+  const actorName = user.name;
+  const acts: Parameters<typeof Activity.create>[0][] = [];
+
+  for (const task of tasks) {
+    const old = oldValues.get(task._id.toString())!;
+    if (status && status !== old.status) {
+      acts.push({ task: task._id, actor: actorId, actorName, type: 'status_changed', from: old.status, to: status });
+    }
+    if (changesAssignee) {
+      const newAssignedTo = assignedTo ?? null;
+      if (newAssignedTo !== old.assignedTo) {
+        if (newAssignedTo) {
+          const assigneeName = (task.assignedTo as unknown as { name: string } | null)?.name ?? newAssignedTo;
+          acts.push({ task: task._id, actor: actorId, actorName, type: 'assigned', to: assigneeName });
+        } else {
+          acts.push({ task: task._id, actor: actorId, actorName, type: 'unassigned' });
+        }
+      }
+    }
+  }
+
+  if (acts.length > 0) await Activity.insertMany(acts);
+
+  res.json({ tasks });
+}
+
 export async function deleteTask(req: Request, res: Response) {
   const { id } = req.params;
   const user = req.user!;
@@ -260,6 +316,21 @@ export async function deleteTask(req: Request, res: Response) {
 
   task.deletedAt = new Date();
   await task.save();
+  res.status(204).send();
+}
+
+export async function bulkDeleteTasks(req: Request, res: Response) {
+  const { ids } = req.body as BulkIdsInput;
+  const user = req.user!;
+
+  const tasks = await Task.find({ _id: { $in: ids }, ...visibilityFilter(user) });
+  if (tasks.length !== ids.length) throw ApiError.notFound('One or more tasks not found');
+  if (tasks.some((t) => !canManage(t, user))) {
+    throw ApiError.forbidden('You may only delete tasks you created');
+  }
+
+  await Task.updateMany({ _id: { $in: ids } }, { deletedAt: new Date() });
+
   res.status(204).send();
 }
 

@@ -48,6 +48,22 @@ export const listTasksQuerySchema = z.object({
 
 export const idParamSchema = z.object({ id: objectId });
 
+export const bulkIdsSchema = z.object({
+  ids: z.array(objectId).min(1).max(200),
+});
+
+export const bulkUpdateSchema = z
+  .object({
+    ids: z.array(objectId).min(1).max(200),
+    status: z.enum(TASK_STATUSES as [string, ...string[]]).optional(),
+    assignedTo: nullableObjectId.optional(),
+  })
+  .refine((obj) => obj.status !== undefined || obj.assignedTo !== undefined, {
+    message: 'At least one of status or assignedTo is required',
+  });
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type ListTasksQuery = z.infer<typeof listTasksQuerySchema>;
+export type BulkIdsInput = z.infer<typeof bulkIdsSchema>;
+export type BulkUpdateInput = z.infer<typeof bulkUpdateSchema>;

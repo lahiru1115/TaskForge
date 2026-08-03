@@ -6,6 +6,7 @@ import TaskCard from '@/components/task/TaskCard'
 import TaskTable from '@/components/task/TaskTable'
 import TaskPagination from '@/components/task/TaskPagination'
 import CreateTaskDialog from '@/components/task/CreateTaskDialog'
+import BulkActionBar from '@/components/task/BulkActionBar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -40,6 +41,7 @@ export default function TasksPage() {
   const [filters, setFilters] = useState<TaskFilters>(
     () => readStorage('filters', { ...DEFAULT_FILTERS, page: 1, limit: 10 }),
   )
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   // Persist state to sessionStorage so navigating back restores page/filters
   useEffect(() => {
@@ -50,19 +52,36 @@ export default function TasksPage() {
     setView(newView)
     localStorage.setItem('taskview-mode', newView)
     setFilters((prev) => ({ ...prev, limit: newView === 'table' ? 10 : 9 }))
+    setSelected(new Set())
   }
 
   function handleFilterChange(newFilters: TaskFilters) {
     setFilters({ ...newFilters, page: 1, limit: view === 'table' ? 10 : 9 })
+    setSelected(new Set())
   }
 
   function handlePageChange(page: number) {
     setFilters((prev) => ({ ...prev, page }))
+    setSelected(new Set())
+  }
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll(checked: boolean) {
+    setSelected(checked ? new Set(tasks.map((t) => t._id)) : new Set())
   }
 
   const { data: response, isLoading, isError } = useTasks(filters)
   const tasks = response?.tasks ?? []
   const pagination = response?.pagination
+  const selectedTasks = tasks.filter((t) => selected.has(t._id))
 
   return (
     <div className="grid gap-4">
@@ -94,6 +113,10 @@ export default function TasksPage() {
       </div>
 
       <FilterBar filters={filters} onChange={handleFilterChange} />
+
+      {view === 'table' && selectedTasks.length > 0 && (
+        <BulkActionBar tasks={selectedTasks} onClear={() => setSelected(new Set())} />
+      )}
 
       {isLoading && (
         <div className="overflow-hidden rounded-lg border">
@@ -127,7 +150,12 @@ export default function TasksPage() {
       {!isLoading && !isError && tasks && tasks.length > 0 && (
         <>
           {view === 'table' ? (
-            <TaskTable tasks={tasks} />
+            <TaskTable
+              tasks={tasks}
+              selected={selected}
+              onToggle={toggleSelected}
+              onToggleAll={toggleSelectAll}
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {tasks.map((task) => (
