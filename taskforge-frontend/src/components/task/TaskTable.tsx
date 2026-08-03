@@ -17,8 +17,8 @@ function isOverdue(task: Task) {
 
 interface TaskTableProps {
   tasks: Task[]
-  selected: Set<string>
-  onToggle: (id: string) => void
+  selected: Map<string, Task>
+  onToggle: (task: Task) => void
   onToggleAll: (checked: boolean) => void
 }
 
@@ -58,7 +58,7 @@ export default function TaskTable({ tasks, selected, onToggle, onToggleAll }: Ta
               <td className="px-4 py-3">
                 <Checkbox
                   checked={selected.has(task._id)}
-                  onCheckedChange={() => onToggle(task._id)}
+                  onCheckedChange={() => onToggle(task)}
                   aria-label={`Select ${task.title}`}
                 />
               </td>

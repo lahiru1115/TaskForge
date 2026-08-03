@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ClipboardList, LayoutGrid, Table2 } from 'lucide-react'
-import { useTasks, type TaskFilters } from '@/hooks/useTasks'
+import { useTasks, type Task, type TaskFilters } from '@/hooks/useTasks'
 import FilterBar from '@/components/task/FilterBar'
 import TaskCard from '@/components/task/TaskCard'
 import TaskTable from '@/components/task/TaskTable'
@@ -41,7 +41,8 @@ export default function TasksPage() {
   const [filters, setFilters] = useState<TaskFilters>(
     () => readStorage('filters', { ...DEFAULT_FILTERS, page: 1, limit: 10 }),
   )
-  const [selected, setSelected] = useState<Set<string>>(new Set())
+  // Keyed by task id so selections made on one page survive navigating to another.
+  const [selected, setSelected] = useState<Map<string, Task>>(new Map())
 
   // Persist state to sessionStorage so navigating back restores page/filters
   useEffect(() => {
@@ -52,36 +53,41 @@ export default function TasksPage() {
     setView(newView)
     localStorage.setItem('taskview-mode', newView)
     setFilters((prev) => ({ ...prev, limit: newView === 'table' ? 10 : 9 }))
-    setSelected(new Set())
+    setSelected(new Map())
   }
 
   function handleFilterChange(newFilters: TaskFilters) {
     setFilters({ ...newFilters, page: 1, limit: view === 'table' ? 10 : 9 })
-    setSelected(new Set())
+    setSelected(new Map())
   }
 
   function handlePageChange(page: number) {
     setFilters((prev) => ({ ...prev, page }))
-    setSelected(new Set())
+    // Selection is intentionally preserved across page changes.
   }
 
-  function toggleSelected(id: string) {
+  function toggleSelected(task: Task) {
     setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      const next = new Map(prev)
+      if (next.has(task._id)) next.delete(task._id)
+      else next.set(task._id, task)
       return next
     })
   }
 
   function toggleSelectAll(checked: boolean) {
-    setSelected(checked ? new Set(tasks.map((t) => t._id)) : new Set())
+    setSelected((prev) => {
+      const next = new Map(prev)
+      if (checked) tasks.forEach((t) => next.set(t._id, t))
+      else tasks.forEach((t) => next.delete(t._id))
+      return next
+    })
   }
 
   const { data: response, isLoading, isError } = useTasks(filters)
   const tasks = response?.tasks ?? []
   const pagination = response?.pagination
-  const selectedTasks = tasks.filter((t) => selected.has(t._id))
+  const selectedTasks = Array.from(selected.values())
 
   return (
     <div className="grid gap-4">
@@ -115,7 +121,7 @@ export default function TasksPage() {
       <FilterBar filters={filters} onChange={handleFilterChange} />
 
       {view === 'table' && selectedTasks.length > 0 && (
-        <BulkActionBar tasks={selectedTasks} onClear={() => setSelected(new Set())} />
+        <BulkActionBar tasks={selectedTasks} onClear={() => setSelected(new Map())} />
       )}
 
       {isLoading && (
