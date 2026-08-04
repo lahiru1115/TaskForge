@@ -109,8 +109,8 @@ Highest-value phase; every later phase is better because this landed first.
 - [x] **Schema changes:** add `workspace: { type: ObjectId, ref: 'Workspace', index: true }` to `Task.ts`, `Comment.ts`, **and** `Activity.ts` — optional for now, flips to `required: true` after the migration runs (see below). Denormalizing onto Comment/Activity lets you scope-check without loading the parent task.
 
 **New middleware — `src/middleware/workspace.ts`**
-- [ ] `resolveWorkspace`: `params.slug` → loads workspace + caller's membership → **404s non-members** (never 403 — don't leak workspace existence) → attaches `req.workspace` / `req.membership`.
-- [ ] `requireWorkspaceRole('owner', 'admin')`. Extend `src/types/express.d.ts`.
+- [x] `resolveWorkspace`: `params.slug` → loads workspace + caller's active membership → **404s non-members** (never 403 — don't leak workspace existence) → attaches `req.workspace` / `req.membership`. Filters membership on `status: 'active'`, so an `invited`-but-not-yet-accepted row doesn't grant access.
+- [x] `requireWorkspaceRole('owner', 'admin')`. Extended `src/types/express.d.ts` with `req.workspace` / `req.membership`. Not wired into any routes yet — that lands with the routing rewrite.
 
 **Routing:** new `routes/workspace.routes.ts` (workspace CRUD, `GET/PATCH/DELETE .../members/:userId`, invite create/list/revoke) plus top-level `POST /api/invites/:token/accept`. Nest the existing routes: `router.use('/:slug/tasks', resolveWorkspace, taskRoutes)` with `Router({ mergeParams: true })` in `task.routes.ts` — the task/comment route shapes stay intact. Cut `/api/tasks` outright and note it in a CHANGELOG; this is a portfolio project, not a public API with consumers.
 
