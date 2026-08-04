@@ -132,15 +132,17 @@ Judgment calls made while building this, none spelled out in the original plan:
 
 Verified live against the real dev database (not just the existing smoke tests, which don't touch any of this): created a workspace, listed it, created an invite, listed invites (confirmed `tokenHash` isn't leaked in the response), accepted it as the correct user, confirmed membership appeared; then confirmed re-accepting an already-accepted invite 404s, accepting with the wrong logged-in user 403s on email mismatch, a plain `member` gets 403 trying to change another member's role, self-removal succeeds and immediately 404s further access (no lingering visibility), and the full delete cascade actually removes the workspace and everything scoped to it.
 
-- [x] **Migration — `src/scripts/migrate-001-workspaces.ts`** (`npm run migrate`). Idempotent, stamped in a `Migration` model (`{name, appliedAt}`, unique on `name`):
-  1. Check stamp; exit if already applied.
-  2. Upsert workspace `{ name: 'TaskForge', slug: 'taskforge', owner: <first admin, or first user if none> }`.
-  3. `WorkspaceMember.bulkWrite` (upsert per user, not plain `insertMany`) — owner gets `owner`, other admins get `admin`, rest get `member`. Upsert rather than insert so a re-run after a partial failure can't hit the unique `{workspace,user}` index.
-  4. `updateMany({ workspace: { $exists: false } }, ...)` on Task, Comment, Activity.
-  5. **Verify:** count docs still missing `workspace`; exit **non-zero** if > 0.
-  6. Write the stamp.
+- [x] **Migration — `src/migrations/001-workspaces.ts`** (`npm run migrate`). The migration itself:
+  1. Upsert workspace `{ name: 'TaskForge', slug: 'taskforge', owner: <first admin, or first user if none> }`.
+  2. `WorkspaceMember.bulkWrite` (upsert per user, not plain `insertMany`) — owner gets `owner`, other admins get `admin`, rest get `member`. Upsert rather than insert so a re-run after a partial failure can't hit the unique `{workspace,user}` index.
+  3. `updateMany({ workspace: { $exists: false } }, ...)` on Task, Comment, Activity.
+  4. **Verify:** count docs still missing `workspace`; throw if > 0.
 
   Wired `preDeployCommand: npm run migrate` into `render.yaml`. Verified live against the real dev database, not just type-checked: first run created the workspace + 4 memberships and backfilled every existing Task/Comment/Activity; a second run correctly no-op'd against the existing stamp.
+
+  **Follow-up (general runner):** stamp-checking, connection lifecycle, and ordering were pulled out of `001-workspaces.ts` into `src/migrations/runner.ts`, so a migration file is now just a plain module exporting `{ name, up }` — no `connectDB`/`disconnectDB`, no `Migration.findOne` boilerplate, no `process.exit` (it throws on failure; the runner owns the exit code). New migrations register in one explicit array in `runner.ts` — deliberately not filesystem auto-discovery, so what runs and in what order is always visible in one place rather than implied by file naming, and nothing can run before it's deliberately added to the list. `package.json`'s `migrate` script now points at the runner. Re-verified live end-to-end after the refactor, not just via a build: cleared the `Migration` stamp and confirmed a genuine fresh apply still works through the new runner (created the workspace + 4 memberships, correctly found 0 documents left to backfill since the reseed already stamps everything), then confirmed the skip path still no-ops correctly on a second run.
+
+  **Also fixed while here:** `src/scripts/reset-db.ts` didn't know about `Workspace`, `WorkspaceMember`, `Invite`, or `Migration` at all — `npm run reset:db -- all` had silently not been resetting everything since Phase 1 started. Added all four.
 
 - [x] **Seed rewrite:** two workspaces — "Acme Product" (all four users: admin=owner, jane=admin, john=member, sarah=**viewer**) and "Side Project" (admin=owner, jane=member only) — plus one pending invite (`mike@taskforge.com`, unaccepted).
 

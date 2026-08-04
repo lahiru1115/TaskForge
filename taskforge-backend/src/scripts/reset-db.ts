@@ -4,6 +4,10 @@ import { Task } from '../models/Task';
 import { Activity } from '../models/Activity';
 import { Comment } from '../models/Comment';
 import { LoginEvent } from '../models/LoginEvent';
+import { Workspace } from '../models/Workspace';
+import { WorkspaceMember } from '../models/WorkspaceMember';
+import { Invite } from '../models/Invite';
+import { Migration } from '../models/Migration';
 
 const collections: Record<string, any> = {
   User,
@@ -11,6 +15,10 @@ const collections: Record<string, any> = {
   Activity,
   Comment,
   LoginEvent,
+  Workspace,
+  WorkspaceMember,
+  Invite,
+  Migration,
 };
 
 async function resetDB() {

@@ -1,32 +1,17 @@
-import { connectDB, disconnectDB } from '../config/db';
 import { User } from '../models/User';
 import { Task } from '../models/Task';
 import { Comment } from '../models/Comment';
 import { Activity } from '../models/Activity';
 import { Workspace } from '../models/Workspace';
 import { WorkspaceMember, WorkspaceRole } from '../models/WorkspaceMember';
-import { Migration } from '../models/Migration';
+import type { MigrationModule } from './runner';
 
-const MIGRATION_NAME = '001-workspaces';
 const DEFAULT_WORKSPACE = { name: 'TaskForge', slug: 'taskforge' };
 
-async function migrate() {
-  await connectDB();
-
-  const already = await Migration.findOne({ name: MIGRATION_NAME });
-  if (already) {
-    console.log(
-      `✓ Migration "${MIGRATION_NAME}" already applied at ${already.appliedAt.toISOString()} — nothing to do.`
-    );
-    await disconnectDB();
-    return;
-  }
-
+async function up(): Promise<void> {
   const users = await User.find().sort({ createdAt: 1 });
   if (users.length === 0) {
-    console.log('No users found — nothing to migrate. Writing stamp.');
-    await Migration.create({ name: MIGRATION_NAME, appliedAt: new Date() });
-    await disconnectDB();
+    console.log('  No users found — nothing to migrate.');
     return;
   }
 
@@ -39,7 +24,7 @@ async function migrate() {
     { $setOnInsert: { name: DEFAULT_WORKSPACE.name, slug: DEFAULT_WORKSPACE.slug, owner: owner._id } },
     { upsert: true, returnDocument: 'after' }
   );
-  console.log(`✓ Workspace "${workspace.name}" (${workspace.slug}) ready — owner ${owner.email}`);
+  console.log(`  Workspace "${workspace.name}" (${workspace.slug}) ready — owner ${owner.email}`);
 
   const memberOps = users.map((u) => {
     let role: WorkspaceRole;
@@ -57,26 +42,26 @@ async function migrate() {
   });
   const memberResult = await WorkspaceMember.bulkWrite(memberOps);
   console.log(
-    `✓ ${memberResult.upsertedCount} workspace membership(s) created (${users.length - memberResult.upsertedCount} already existed).`
+    `  ${memberResult.upsertedCount} workspace membership(s) created (${users.length - memberResult.upsertedCount} already existed).`
   );
 
   const taskResult = await Task.updateMany(
     { workspace: { $exists: false } },
     { $set: { workspace: workspace._id } }
   );
-  console.log(`✓ Task: backfilled ${taskResult.modifiedCount} document(s).`);
+  console.log(`  Task: backfilled ${taskResult.modifiedCount} document(s).`);
 
   const commentResult = await Comment.updateMany(
     { workspace: { $exists: false } },
     { $set: { workspace: workspace._id } }
   );
-  console.log(`✓ Comment: backfilled ${commentResult.modifiedCount} document(s).`);
+  console.log(`  Comment: backfilled ${commentResult.modifiedCount} document(s).`);
 
   const activityResult = await Activity.updateMany(
     { workspace: { $exists: false } },
     { $set: { workspace: workspace._id } }
   );
-  console.log(`✓ Activity: backfilled ${activityResult.modifiedCount} document(s).`);
+  console.log(`  Activity: backfilled ${activityResult.modifiedCount} document(s).`);
 
   const [orphanTasks, orphanComments, orphanActivities] = await Promise.all([
     Task.countDocuments({ workspace: { $exists: false } }),
@@ -85,21 +70,14 @@ async function migrate() {
   ]);
   const orphanTotal = orphanTasks + orphanComments + orphanActivities;
   if (orphanTotal > 0) {
-    console.error(
-      `✗ Verification failed: ${orphanTotal} document(s) still missing workspace ` +
+    // Thrown, not process.exit(1) — this file no longer owns the DB connection
+    // or the exit code. The runner decides what happens when a migration fails.
+    throw new Error(
+      `Verification failed: ${orphanTotal} document(s) still missing workspace ` +
         `(Task=${orphanTasks}, Comment=${orphanComments}, Activity=${orphanActivities}).`
     );
-    await disconnectDB();
-    process.exit(1);
   }
-
-  await Migration.create({ name: MIGRATION_NAME, appliedAt: new Date() });
-  console.log(`✓ Migration "${MIGRATION_NAME}" complete and stamped.`);
-
-  await disconnectDB();
 }
 
-migrate().catch((err) => {
-  console.error('Migration failed:', err);
-  process.exit(1);
-});
+const migration: MigrationModule = { name: '001-workspaces', up };
+export default migration;
