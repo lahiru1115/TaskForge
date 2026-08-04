@@ -79,7 +79,7 @@ Ships first: nothing here touches the data model, and everything downstream need
 **Docs truth-up**
 - [x] Add `docs/RENDER_VERCEL_DEPLOYMENT.md` covering the real Render + Vercel topology, env var tables, and the cross-site cookie/CORS reasoning. `docs/AWS_DEPLOYMENT.md` is kept as an alternative reference architecture and cross-linked from it.
 - [x] Fix `docs/PLAN.md`: React 19 / Router v7 (line 7), `SameSite=None` in prod (line 39), uncheck line 70.
-- [ ] New `docs/ARCHITECTURE.md` with a mermaid request-flow diagram — this becomes the file you link in applications.
+- [x] New `docs/ARCHITECTURE.md` with a mermaid request-flow diagram — this becomes the file you link in applications.
 
 **Real bugs**
 - [x] Standardize on port `3000`: backend default (`config/env.ts`), both `.env`/`.env.example` pairs, and the Axios fallback (`src/lib/api.ts:4`).
