@@ -65,7 +65,7 @@ Role rules live in `controllers/task.controller.ts`:
 - [x] Command palette (⌘K): fuzzy-search tasks and jump to actions; client-side over TanStack Query cache; shadcn `Command` component
 
 ### Deployment
-- [ ] Backend → Render
-- [ ] Frontend → Vercel
-- [ ] Fix `taskforge-frontend/.env.example` port (3000 → 4000)
-- [ ] Make GitHub repo public
+- [x] Backend → Render
+- [x] Frontend → Vercel
+- [x] Fix `taskforge-frontend/.env.example` port (3000 → 4000)
+- [x] Make GitHub repo public
