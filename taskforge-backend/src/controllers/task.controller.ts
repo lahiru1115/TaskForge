@@ -268,13 +268,13 @@ export async function bulkUpdateTasks(req: Request, res: Response) {
     tasks.map((t) => [t._id.toString(), { status: t.status, assignedTo: t.assignedTo?.toString() ?? null }])
   );
 
-  for (const task of tasks) {
-    if (status) task.status = status as TaskStatus;
-    if (changesAssignee) task.assignedTo = (assignedTo ?? null) as unknown as ITask['assignedTo'];
-    await task.save();
-  }
+  const update: Partial<Pick<ITask, 'status' | 'assignedTo'>> = {};
+  if (status) update.status = status as TaskStatus;
+  if (changesAssignee) update.assignedTo = (assignedTo ?? null) as unknown as ITask['assignedTo'];
 
-  await Task.populate(tasks, [
+  await Task.updateMany({ _id: { $in: ids } }, { $set: update });
+
+  const updatedTasks = await Task.find({ _id: { $in: ids } }).populate([
     { path: 'createdBy', select: 'name email' },
     { path: 'assignedTo', select: 'name email' },
   ]);
@@ -283,7 +283,7 @@ export async function bulkUpdateTasks(req: Request, res: Response) {
   const actorName = user.name;
   const acts: Parameters<typeof Activity.create>[0][] = [];
 
-  for (const task of tasks) {
+  for (const task of updatedTasks) {
     const old = oldValues.get(task._id.toString())!;
     if (status && status !== old.status) {
       acts.push({ task: task._id, actor: actorId, actorName, type: 'status_changed', from: old.status, to: status });
@@ -303,7 +303,7 @@ export async function bulkUpdateTasks(req: Request, res: Response) {
 
   if (acts.length > 0) await Activity.insertMany(acts);
 
-  res.json({ tasks });
+  res.json({ tasks: updatedTasks });
 }
 
 export async function deleteTask(req: Request, res: Response) {

@@ -6,7 +6,7 @@ services:
     rootDir: taskforge-backend
     buildCommand: npm ci && npm run build
     startCommand: npm start
-    # healthCheckPath: /api/health — set once the health endpoint lands (see docs/SCALING.md, Phase 0)
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production

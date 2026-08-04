@@ -86,7 +86,7 @@ Ships first: nothing here touches the data model, and everything downstream need
 - [x] Move `taskforge-backend/src/seed.ts` → `src/scripts/seed.ts` (`reset-db.ts` is already there); update `package.json`.
 
 **Infra as code**
-- [x] `render.yaml` (web service; health check path deferred until the health endpoint lands), `taskforge-frontend/vercel.json` (SPA rewrite so `/tasks/:id` deep links don't 404, plus security headers).
+- [x] `render.yaml` (web service, now including `healthCheckPath: /api/health`), `taskforge-frontend/vercel.json` (SPA rewrite so `/tasks/:id` deep links don't 404, plus security headers).
 
 **CI + harness**
 - [x] `.github/workflows/ci.yml`: backend (lint → build → test) and frontend (lint → build), npm cache keyed on lockfiles. `tsc`/`tsc -b` already type-check as part of `build` in both packages, so there's no separate type-check step.
@@ -94,12 +94,12 @@ Ships first: nothing here touches the data model, and everything downstream need
 - [x] Add `oxlint` + a `lint` script to the backend — it had no lint script at all before this. Also fixed the one warning it immediately surfaced: an unused `generateNKeysBetween` import in `task.controller.ts`.
 
 **Zero-risk runtime wins**
-- [ ] `app.ts`: `compression()` before routes — populated task-list JSON compresses ~80%.
-- [ ] New `routes/health.routes.ts`: `GET /api/health` (liveness, no DB) and `/api/health/ready` (mongoose `readyState` + ping).
-- [ ] `server.ts`: capture `app.listen`'s return; on `SIGTERM` → `server.close()` → `disconnectDB()` → exit, with a 10s force-exit timer. Render sends SIGTERM on every deploy; today in-flight requests are dropped.
-- [ ] `config/db.ts`: `maxPoolSize: 10, minPoolSize: 2, serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000`.
-- [ ] `models/LoginEvent.ts`: TTL index on `createdAt` (90d) + `{ email:1, createdAt:-1 }`. Zero indexes today on an append-only collection.
-- [ ] `task.controller.ts:271-275`: replace the sequential `await task.save()` loop (up to 200 round trips) with `updateMany` + one re-`find` for the populated response — mirroring what `bulkDeleteTasks` already does at `:332`.
+- [x] `app.ts`: `compression()` before routes — populated task-list JSON compresses ~80%.
+- [x] New `routes/health.routes.ts`: `GET /api/health` (liveness, no DB) and `/api/health/ready` (mongoose `readyState` + ping). Verified live against a running server, not just type-checked.
+- [x] `server.ts`: capture `app.listen`'s return; on `SIGTERM`/`SIGINT` → `server.close()` → `disconnectDB()` → exit, with a 10s force-exit timer. Render sends SIGTERM on every deploy; previously in-flight requests were dropped. Implementation is the standard Node/Express pattern and type-checks clean; end-to-end signal delivery wasn't reliably verifiable through Git Bash on Windows (background node processes detach from the MSYS session and don't consistently receive emulated POSIX signals) — worth a real check once this is actually deployed to Render.
+- [x] `config/db.ts`: `maxPoolSize: 10, minPoolSize: 2, serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000`.
+- [x] `models/LoginEvent.ts`: TTL index on `createdAt` (90d) + `{ email:1, createdAt:-1 }`. Previously zero indexes on an append-only collection.
+- [x] `task.controller.ts`: replaced the sequential `await task.save()` loop in `bulkUpdateTasks` (up to 200 round trips) with `updateMany` + one re-`find` for the populated response — mirroring what `bulkDeleteTasks` already did.
 
 **Demonstrates:** CI on day one, docs that match the deploy, awareness of SIGTERM and connection pools.
 

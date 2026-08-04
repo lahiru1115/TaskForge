@@ -23,4 +23,8 @@ const loginEventSchema = new Schema<ILoginEvent>(
   { timestamps: true },
 );
 
+// Append-only collection — bound its growth and support the only query shape it needs.
+loginEventSchema.index({ createdAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
+loginEventSchema.index({ email: 1, createdAt: -1 });
+
 export const LoginEvent = model<ILoginEvent>('LoginEvent', loginEventSchema);
