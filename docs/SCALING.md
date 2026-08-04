@@ -117,9 +117,9 @@ Highest-value phase; every later phase is better because this landed first.
 **Authorization rewrite — new `src/services/authz.ts`**
 
 One definition of scope and capability, **deleting the duplicated `visibilityFilter` at `comment.controller.ts:10-13`**. A tenant check living in two files will diverge — this is the most important correctness detail in the phase.
-- [ ] `scopeFilter(req)` → `{ workspace: req.workspace._id, deletedAt: null }`; `?mine=true` adds the old `$or` as a UI filter.
-- [ ] `canManage` → `membership.role in (owner, admin) || task.createdBy.equals(user._id)`. `member` may patch `status`/`rank` on any task, full-edit only own. `viewer` writes nothing.
-- [ ] Task/comment controllers stop reading `user.role` entirely.
+- [x] `scopeFilter(req)` → `{ workspace: req.workspace._id, deletedAt: null }`; `?mine=true` adds the old `$or` as a UI filter. Written in `src/services/authz.ts`, not wired in yet.
+- [x] `canManage` → `membership.role in (owner, admin) || task.createdBy.equals(user._id)`. Also added `canView` (task's `workspace` matches `req.workspace`) and `canPatchStatusRank` (`owner`/`admin`/`member`, not `viewer`) — the concrete implementation of "member may patch status/rank on any task, full-edit only own; viewer writes nothing," which the plan described but didn't name as functions.
+- [ ] Task/comment controllers stop reading `user.role` entirely. Lands with the routing/controller rewrite below — `authz.ts` exists but nothing calls it yet.
 
 **Latent bug to fix while here:** `createTask` (`task.controller.ts:142`) computes the next rank via `Task.findOne({ status }).sort({ rank: -1 })` — across the *entire collection*, ignoring `deletedAt`. Today that ranks new tasks against soft-deleted ones; after tenancy it would rank against **other tenants' tasks**. Must become `{ workspace, status, deletedAt: null }`.
 
