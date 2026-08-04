@@ -152,11 +152,14 @@ Verified live: full invite lifecycle (create → list, hash not leaked → accep
 
   **Follow-up (readability):** the ~500 lines of inline task/comment data moved to `src/scripts/seed-data/*.json`, cross-referenced by string keys resolved to real ObjectIds at seed time. What stayed as code: password hashing, rank generation, and the activity-timeline simulation — that's algorithm, not data. Re-verified: seed output matched the pre-split run exactly, and a live API check confirmed content resolved correctly.
 
-**Frontend**
-- [ ] `App.tsx`: routes become `/w/:slug/*` under a new `WorkspaceLayout` that resolves the slug, 404s non-members, and provides context. `/` redirects to last-visited workspace (localStorage) else `/workspaces`.
-- [ ] New: `context/WorkspaceContext.tsx`, `hooks/useWorkspaces.ts`, `hooks/useMembers.ts`, `pages/Workspaces.tsx`, `pages/settings/Members.tsx`, `pages/AcceptInvite.tsx`, `components/layout/WorkspaceSwitcher.tsx` (Popover + the existing `components/ui/command.tsx`), mounted in `Navbar.tsx`.
-- [ ] **Every query key gains the slug**: `['ws', slug, 'tasks', ...]`. Fixes cross-workspace cache bleed and sets up Phase 3's targeted updates.
-- [ ] `AuthContext.tsx`: `isAdmin` → `isPlatformAdmin`; component role checks move to `useWorkspaceRole()`.
+**Frontend — six steps, sequenced like the backend (small, buildable, verified before the next).**
+
+- [x] **Step 1 — workspace data layer:** `hooks/useWorkspaces.ts` (list/create/update/delete), `hooks/useMembers.ts` (members/invites/accept). Query keys: `['workspaces']` for the cross-workspace list, `['ws', slug, ...]` for everything scoped to one — sets the convention Step 5 extends to tasks/comments/activity. `context/WorkspaceContext.tsx`: `WorkspaceProvider` reads `:slug` from the URL and exposes `{workspace, role}` via `useCurrentWorkspace()`. Purely additive — nothing imports any of this yet, verified by build/lint staying green with zero behavior change.
+- [ ] **Step 2 — new pages:** `pages/Workspaces.tsx` (list + create), `pages/AcceptInvite.tsx`, `pages/settings/Members.tsx` (list, invite, role change, remove). Consume Step 1; not routed yet.
+- [ ] **Step 3 — `WorkspaceSwitcher`** component (Popover + the existing `components/ui/command.tsx`); built standalone, not yet mounted.
+- [ ] **Step 4 — routing rewrite:** new `WorkspaceLayout` (resolves slug, 404s non-members, provides context), `App.tsx` restructured to `/workspaces`, `/invite/:token`, and `/w/:slug/*` wrapping the existing pages; `/` redirects to the last-visited workspace (localStorage) else `/workspaces`; mount `WorkspaceSwitcher` in `Navbar.tsx`. Routing becomes coherent here, but pages won't render correctly yet — their data hooks aren't workspace-scoped until Step 5.
+- [ ] **Step 5 — query key + endpoint migration:** `useTasks.ts`/`useComments.ts`/`useActivity.ts` call `/api/workspaces/:slug/...` with `['ws', slug, 'tasks', ...]` keys; delete `useUsers.ts`, replace call sites with `useMembers`. First point the app works end-to-end in the browser again — the real live-verification checkpoint.
+- [ ] **Step 6 — `AuthContext.tsx`:** `isAdmin` → `isPlatformAdmin`; audit the 13 files reading `isAdmin`/`useUsers()` — most move to a new `useWorkspaceRole()`, a few (e.g. the Navbar badge) may legitimately stay platform-level.
 
 **Demonstrates:** tenant isolation as a structural property; join-collection modeling with the alternatives explicitly rejected; per-tenant RBAC; an idempotent, self-verifying migration wired into the deploy; the judgment to break an API contract deliberately and document it.
 
