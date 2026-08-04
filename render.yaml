@@ -5,6 +5,7 @@ services:
     plan: free
     rootDir: taskforge-backend
     buildCommand: npm ci && npm run build
+    preDeployCommand: npm run migrate
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:

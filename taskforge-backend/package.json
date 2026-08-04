@@ -10,6 +10,7 @@
     "lint": "oxlint",
     "seed": "tsx src/scripts/seed.ts",
     "reset:db": "tsx src/scripts/reset-db.ts",
+    "migrate": "tsx src/scripts/migrate-001-workspaces.ts",
     "test": "vitest run"
   },
   "keywords": [],

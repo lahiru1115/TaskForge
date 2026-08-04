@@ -125,17 +125,15 @@ One definition of scope and capability, **deleting the duplicated `visibilityFil
 
 **Fix `listUsers`:** `user.controller.ts:7-10` returns every user in the database to any authenticated caller. Replace with `GET /api/workspaces/:slug/members` — paginated, `?q=` prefix search, co-members only. Delete the global endpoint; `hooks/useUsers.ts` → `hooks/useMembers.ts`.
 
-**Migration — `src/scripts/migrate-001-workspaces.ts`** (`npm run migrate`)
+- [x] **Migration — `src/scripts/migrate-001-workspaces.ts`** (`npm run migrate`). Idempotent, stamped in a `Migration` model (`{name, appliedAt}`, unique on `name`):
+  1. Check stamp; exit if already applied.
+  2. Upsert workspace `{ name: 'TaskForge', slug: 'taskforge', owner: <first admin, or first user if none> }`.
+  3. `WorkspaceMember.bulkWrite` (upsert per user, not plain `insertMany`) — owner gets `owner`, other admins get `admin`, rest get `member`. Upsert rather than insert so a re-run after a partial failure can't hit the unique `{workspace,user}` index.
+  4. `updateMany({ workspace: { $exists: false } }, ...)` on Task, Comment, Activity.
+  5. **Verify:** count docs still missing `workspace`; exit **non-zero** if > 0.
+  6. Write the stamp.
 
-Idempotent, stamped in a `migrations` collection (`{name, appliedAt}`):
-1. Check stamp; exit 0 if applied.
-2. Create workspace `{ name: 'TaskForge', slug: 'taskforge', owner: <first admin> }`.
-3. `WorkspaceMember.insertMany` for every `User` — first `admin` → `owner`, other admins → `admin`, rest → `member`.
-4. `updateMany({ workspace: { $exists: false } }, { $set: { workspace: wsId } })` on Task, Comment, Activity.
-5. **Verify:** count docs still missing `workspace`; exit **non-zero** if > 0.
-6. Write the stamp.
-
-Sequence it as: ship `workspace` optional → run migration → flip to `required: true`. Wire `preDeployCommand: npm run migrate` in `render.yaml` so production self-migrates on deploy.
+  Wired `preDeployCommand: npm run migrate` into `render.yaml`. Verified live against the real dev database, not just type-checked: first run created the workspace + 4 memberships and backfilled every existing Task/Comment/Activity; a second run correctly no-op'd against the existing stamp.
 
 **Seed rewrite:** two workspaces — "Acme Product" (all four users, varied roles including one `viewer`) and "Side Project" (admin + jane only) — with the 50 tasks split across them and one pending invite. Two workspaces is what makes isolation demo-able in five seconds: log in as john and "Side Project" simply isn't there.
 
