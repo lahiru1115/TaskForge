@@ -9,6 +9,7 @@ import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import workspaceRoutes from './routes/workspace.routes';
+import inviteRoutes from './routes/invite.routes';
 import { notFoundHandler, errorHandler } from './middleware/error';
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/workspaces', workspaceRoutes);
+app.use('/api/invites', inviteRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -5,11 +5,6 @@ import { ApiError } from '../utils/ApiError';
 import { UpdateProfileInput, ChangePasswordInput } from '../validators/auth.validator';
 import { hashPassword } from '../models/User';
 
-export async function listUsers(_req: Request, res: Response) {
-  const users = await User.find().sort({ name: 1 });
-  res.json({ users: users.map(publicUser) });
-}
-
 export async function updateMe(req: Request, res: Response) {
   const { name, email } = req.body as UpdateProfileInput;
 
