@@ -1,6 +1,6 @@
 # TaskForge — Architecture
 
-System topology and request flow. For data model and feature scope see [`PLAN.md`](./PLAN.md); for deploy config see [`RENDER_VERCEL_DEPLOYMENT.md`](./RENDER_VERCEL_DEPLOYMENT.md).
+System topology and request flow. For data model and feature scope see [`PLAN.md`](./PLAN.md); for deploy config see [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 ## System
 
@@ -11,15 +11,16 @@ flowchart LR
     Browser -. "static build" .-> CDN["Vercel"]
 ```
 
-Cookie-based auth, split origins: the SPA and API are separate deployments, so every request carries the `tf_token` HttpOnly cookie cross-site (`SameSite=None; Secure` in production — see `RENDER_VERCEL_DEPLOYMENT.md`).
+Cookie-based auth, split origins: the SPA and API are separate deployments, so every request carries the `tf_token` HttpOnly cookie cross-site (`SameSite=None; Secure` in production — see `DEPLOYMENT.md`).
 
 ## Request flow
 
 ```mermaid
 flowchart TD
-    Req([Request]) --> Helmet[helmet] --> CORS[cors] --> Morgan[morgan] --> Json["express.json()"] --> Cookie[cookieParser]
+    Req([Request]) --> Helmet[helmet] --> Compression[compression] --> CORS[cors] --> Morgan[morgan] --> Json["express.json()"] --> Cookie[cookieParser]
     Cookie --> Router{route matched?}
-    Router -- no --> NotFound[notFoundHandler → 404] --> Res([Response])
+    Router -- "/api/health*" --> Health["health.routes\n(liveness / readiness, no auth)"] --> Res([Response])
+    Router -- no match --> NotFound[notFoundHandler → 404] --> Res
     Router -- yes --> Auth{"authenticate?\n(most routes)"}
     Auth -- "cookie/Bearer missing or invalid" --> Err
     Auth -- ok --> Role{"requireRole?\n(admin-only routes)"}

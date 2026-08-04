@@ -36,18 +36,22 @@ If `graphify-out/wiki/index.md` exists, use it for broad navigation. Read `graph
 npm run dev          # start API with hot reload (tsx watch on src/server.ts)
 npm run build        # type-check + compile to dist/ (tsc)
 npm start            # run compiled server (node dist/server.js)
+npm run lint         # oxlint
+npm test             # vitest — smoke suite against mongodb-memory-server
 npm run seed         # seed 4 users + 50 sample tasks with activity logs (clears existing data)
 npm run reset:db -- all              # delete all collections
 npm run reset:db -- User Task        # delete specific collections
 ```
 
-No test runner is configured. `npm run build` is the only static check — run it before considering backend work done.
+`build`, `lint`, and `test` all run in CI (`.github/workflows/ci.yml`) on every push/PR.
 
 ### Frontend (`taskforge-frontend/`)
 
 ```bash
 npm run dev          # start Vite dev server (http://localhost:5173)
 npm run build        # type-check + bundle to dist/
+npm run lint         # oxlint
+npm test             # vitest — harness only, no tests yet (passes with zero)
 npm run preview      # preview the production build locally
 ```
 

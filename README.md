@@ -150,6 +150,8 @@ cd taskforge-frontend && npm run build
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
+| GET | `/api/health` | — | Liveness check, no DB dependency |
+| GET | `/api/health/ready` | — | Readiness check, pings MongoDB |
 | POST | `/api/auth/register` | — | Create account, set auth cookie |
 | POST | `/api/auth/login` | — | Login, set auth cookie |
 | POST | `/api/auth/logout` | Cookie | Clear auth cookie |

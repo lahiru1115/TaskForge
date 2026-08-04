@@ -1,6 +1,4 @@
-# TaskForge — Render + Vercel Deployment
-
-The **current production deployment**. For the alternative EC2 + nginx + PM2 + Amplify path, see [`AWS_DEPLOYMENT.md`](./AWS_DEPLOYMENT.md) — that guide is kept as a reference architecture and is not what runs today.
+# TaskForge — Deployment
 
 **Architecture:**
 
@@ -21,8 +19,8 @@ Repo: `https://github.com/lahiru1115/TaskForge`
 Frontend and backend sit on **different origins**, and auth is a cookie. Three settings have to agree or login silently fails in production while working perfectly on localhost:
 
 1. **`taskforge-backend/src/controllers/auth.controller.ts`** sets the cookie with `secure: isProd` and `sameSite: isProd ? 'none' : 'strict'`. `SameSite=None` is mandatory for a cross-site cookie, and browsers reject `SameSite=None` unless `Secure` is also set — which is why both are keyed to `NODE_ENV`. **If `NODE_ENV` is not `production` on Render, the cookie is issued as `SameSite=Strict` and the browser will drop it.**
-2. **`taskforge-backend/src/app.ts:16-21`** — CORS runs with `origin: env.clientOrigins` and `credentials: true`. The Vercel origin must be in that list exactly, scheme included, no trailing slash.
-3. **`taskforge-backend/src/app.ts:14`** — `app.set('trust proxy', 1)`, required behind Render's proxy so `secure` cookies and `req.ip` behave.
+2. **`taskforge-backend/src/app.ts:19-24`** — CORS runs with `origin: env.clientOrigins` and `credentials: true`. The Vercel origin must be in that list exactly, scheme included, no trailing slash.
+3. **`taskforge-backend/src/app.ts:16`** — `app.set('trust proxy', 1)`, required behind Render's proxy so `secure` cookies and `req.ip` behave.
 
 `CLIENT_ORIGIN` is comma-split in `taskforge-backend/src/config/env.ts:15-18`, so multiple origins are supported.
 
@@ -78,7 +76,7 @@ Render's free tier **spins the instance down after ~15 minutes of inactivity**. 
 
 ### Health check
 
-Render's health check path should be left **blank for now** — the API currently exposes no health endpoint (`app.ts` mounts only `/api/auth`, `/api/users`, `/api/tasks`). Adding `GET /api/health` is Phase 0 of [`SCALING.md`](./SCALING.md); once it exists, set the path here so Render stops routing traffic to an unhealthy instance.
+Set the health check path to `/api/health` (already wired in `render.yaml`). `GET /api/health` is a liveness check with no DB dependency; `GET /api/health/ready` additionally pings MongoDB — Render itself only uses the former.
 
 ---
 
@@ -165,11 +163,8 @@ Then change it back. Demo credentials are listed in the root `README.md`.
 
 ## Known gaps
 
-Tracked as Phase 0 / Phase 5 items in [`SCALING.md`](./SCALING.md):
+Tracked in [`SCALING.md`](./SCALING.md):
 
-- **No health endpoint** — Render can't detect an unhealthy instance.
-- **No graceful shutdown** — `server.ts` has no `SIGTERM` handler, and Render sends SIGTERM on every deploy, so in-flight requests are cut.
-- **No CSRF defense** — a necessary consequence of `SameSite=None`, currently unmitigated.
+- **No CSRF defense** — a necessary consequence of `SameSite=None`, currently unmitigated (Phase 2).
 - **No `engines.node` pin** in either `package.json`; Render picks its own default. Pin it to keep local and production on one major version.
 - **No Atlas backups on M0** — take a manual `mongodump` before any migration.
-- **No CI** — nothing type-checks or builds before a deploy goes out. Both platforms auto-deploy from `main`, so a broken commit reaches production directly.

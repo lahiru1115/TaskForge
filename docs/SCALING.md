@@ -10,13 +10,9 @@ Exploration surfaced one connecting insight that drives the whole sequence below
 
 Introducing a workspace boundary collapses that `$or` into a single equality on `workspace` — which is exactly the selective leading key that makes every compound index possible. **So multi-tenancy must land before the index work, not after.** Doing indexes first means redoing all of them.
 
-The third gap is that none of this is currently verifiable: zero test files in either package, no `.github/`, no health endpoint, morgan-only logging, no error tracking.
+The third gap — nothing was verifiable — is what Phase 0 closed: CI, a Vitest harness on both packages, and a set of zero-risk runtime fixes (see below, all done). What's still missing there — structured logging, error tracking, metrics — is Phase 5's job.
 
-There is also live doc drift that undercuts the repo's credibility:
-- [x] `docs/AWS_DEPLOYMENT.md` described an EC2+nginx+PM2+Amplify deploy while `docs/PLAN.md:67-68` claimed Render+Vercel. **Resolved** — `docs/RENDER_VERCEL_DEPLOYMENT.md` now documents the live Render+Vercel topology and labels the AWS guide as an alternative reference architecture. The AWS doc still references `ecosystem.config.cjs` and `amplify.yml` that don't exist in the tree; commit those or mark them as to-be-created if that path is ever revived.
-- [ ] `docs/PLAN.md:7` says React 18 + Router v6; actual is React 19 + Router v7.
-- [ ] `docs/PLAN.md:39` says the cookie is `SameSite=Strict`; production sets `none` (`auth.controller.ts:24`).
-- [x] `docs/PLAN.md:70` claimed a port fix that hadn't landed. Resolved by standardizing on port `3000` everywhere.
+There was also live doc drift undercutting the repo's credibility: `docs/PLAN.md` claimed a Render+Vercel deploy while a separate AWS guide described a different, unexecuted target, cited stale dependency versions, and checked off a port fix that hadn't landed. Also resolved in Phase 0 — the AWS guide is gone, `docs/DEPLOYMENT.md` documents the real topology, and `docs/PLAN.md` now matches the code.
 
 **Intended outcome:** six independently shippable phases taking TaskForge from a single-tenant demo to a multi-tenant, real-time, tested, observable application.
 
@@ -68,7 +64,7 @@ Frontend: ~6 tests, **pure logic only** — the fractional-rank computation, the
 
 ### 6. Doc and env cleanup → **Phase 0, non-negotiable**
 
-A reviewer who follows a deployment guide and finds the referenced files missing will discount everything else in the repo. ~30 minutes protecting the credibility of six phases. Partly done — see `docs/RENDER_VERCEL_DEPLOYMENT.md` and the Phase 0 checklist below.
+A reviewer who follows a deployment guide and finds the referenced files missing will discount everything else in the repo. ~30 minutes protecting the credibility of six phases. Done — see `docs/DEPLOYMENT.md` and the Phase 0 checklist below.
 
 ---
 
@@ -77,7 +73,7 @@ A reviewer who follows a deployment guide and finds the referenced files missing
 Ships first: nothing here touches the data model, and everything downstream needs the harness.
 
 **Docs truth-up**
-- [x] Add `docs/RENDER_VERCEL_DEPLOYMENT.md` covering the real Render + Vercel topology, env var tables, and the cross-site cookie/CORS reasoning. `docs/AWS_DEPLOYMENT.md` is kept as an alternative reference architecture and cross-linked from it.
+- [x] Add `docs/DEPLOYMENT.md` covering the real Render + Vercel topology, env var tables, and the cross-site cookie/CORS reasoning. The stale AWS/EC2 alternative-deployment guide was removed rather than kept — it referenced files (`ecosystem.config.cjs`, `amplify.yml`) that never existed in the tree.
 - [x] Fix `docs/PLAN.md`: React 19 / Router v7 (line 7), `SameSite=None` in prod (line 39), uncheck line 70.
 - [x] New `docs/ARCHITECTURE.md` with a mermaid request-flow diagram — this becomes the file you link in applications.
 
@@ -235,7 +231,7 @@ Independently shippable; produces a measurable before/after.
 
 Last because it's least visually demo-able — so give it visual hooks anyway.
 
-- [ ] **Logging:** `pino` + `pino-http` replacing morgan (`app.ts:22`); `pino-pretty` in dev. Request id → `X-Request-Id`, propagated via `AsyncLocalStorage` so every log line in a request carries it. Redact `cookie` / `authorization`.
+- [ ] **Logging:** `pino` + `pino-http` replacing morgan (`app.ts:25`); `pino-pretty` in dev. Request id → `X-Request-Id`, propagated via `AsyncLocalStorage` so every log line in a request carries it. Redact `cookie` / `authorization`.
 - [ ] **Errors:** `@sentry/node` + `@sentry/react`, source maps from CI, `tracesSampleRate: 0.1`, capturing 5xx only in `middleware/error.ts`. Add a frontend `ErrorBoundary` — currently absent, so an unhandled render error today shows a blank white page.
 - [ ] **Metrics:** `prom-client` at a token-guarded `GET /metrics` — default Node metrics, an `http_request_duration_seconds` histogram, `taskforge_cache_hits_total`, `taskforge_ws_connections`. **Demo hook:** `docker-compose.observability.yml` with Prometheus + Grafana and a checked-in dashboard JSON, so you can run it locally and screenshot it for the README.
 - [ ] **Retention:** TTL on `Notification.createdAt` (30d); `scripts/purge-trash.ts` hard-deleting tasks with `deletedAt < 30d` plus their Activity/Comment, as a Render cron service. Closes the unbounded-growth gap.
@@ -262,7 +258,7 @@ Last because it's least visually demo-able — so give it visual hooks anyway.
 
 ## Verification
 
-**Every phase:** `cd taskforge-backend && npm run build` (the only static check that exists today — must stay green) and `cd taskforge-frontend && npm run build && npm run lint`. From Phase 0 on, `npm test` green in CI.
+**Every phase:** `.github/workflows/ci.yml` must stay green — backend (`lint` → `build` → `test`) and frontend (`lint` → `build`).
 
 **Phase 1 — the isolation test is the deliverable:**
 1. `npm run seed` → two workspaces with overlapping membership.
@@ -278,4 +274,4 @@ Last because it's least visually demo-able — so give it visual hooks anyway.
 
 **Phase 4:** Lighthouse + `npm run build -- --mode analyze` before and after; React DevTools profiler on a board drag to confirm the re-render count drops.
 
-**Throughout:** keep `docs/PLAN.md` current — it is the stated source of truth, and it currently claims work that isn't in the tree.
+**Throughout:** keep `docs/PLAN.md` current — it is the stated source of truth. Phase 0 brought it back in sync with the code; don't let it drift again.
