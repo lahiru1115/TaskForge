@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: taskforge-backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: taskforge-backend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      # tsc both type-checks and emits — there's no separate no-emit step
+      - run: npm run build
+      - run: npm test
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: taskforge-frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: taskforge-frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      # tsc -b type-checks before vite build bundles
+      - run: npm run build

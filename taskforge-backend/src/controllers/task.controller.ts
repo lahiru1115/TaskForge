@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { generateKeyBetween, generateNKeysBetween } from 'fractional-indexing';
+import { generateKeyBetween } from 'fractional-indexing';
 import { Task, ITask, TASK_STATUSES, TaskPriority, TaskStatus } from '../models/Task';
 import { Activity } from '../models/Activity';
 import { Comment } from '../models/Comment';

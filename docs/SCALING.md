@@ -89,9 +89,9 @@ Ships first: nothing here touches the data model, and everything downstream need
 - [x] `render.yaml` (web service; health check path deferred until the health endpoint lands), `taskforge-frontend/vercel.json` (SPA rewrite so `/tasks/:id` deep links don't 404, plus security headers).
 
 **CI + harness**
-- [ ] `.github/workflows/ci.yml`: backend (typecheck → build → test) and frontend (typecheck → lint → build), npm cache keyed on lockfiles.
-- [ ] Add `vitest` + `supertest` + `mongodb-memory-server` (backend), `vitest` + Testing Library (frontend), `vitest.config.ts` in each. **Three smoke tests only** to prove the harness: register→login→me, create→list task, 401 unauthenticated.
-- [ ] Add `oxlint` + a `lint` script to the backend — it has no lint script at all today; the frontend already uses oxlint.
+- [x] `.github/workflows/ci.yml`: backend (lint → build → test) and frontend (lint → build), npm cache keyed on lockfiles. `tsc`/`tsc -b` already type-check as part of `build` in both packages, so there's no separate type-check step.
+- [x] Add `vitest` + `supertest` + `mongodb-memory-server` (backend), `vitest` + Testing Library (frontend), `vitest.config.mts`/`vitest.config.ts` in each. **Three smoke tests only** to prove the harness: register→login→me, create→list task, 401 unauthenticated. Frontend harness has zero tests yet (`passWithNoTests: true`) — the real suite lands in Phase 2.
+- [x] Add `oxlint` + a `lint` script to the backend — it had no lint script at all before this. Also fixed the one warning it immediately surfaced: an unused `generateNKeysBetween` import in `task.controller.ts`.
 
 **Zero-risk runtime wins**
 - [ ] `app.ts`: `compression()` before routes — populated task-list JSON compresses ~80%.

@@ -7,8 +7,10 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "lint": "oxlint",
     "seed": "tsx src/scripts/seed.ts",
-    "reset:db": "tsx src/scripts/reset-db.ts"
+    "reset:db": "tsx src/scripts/reset-db.ts",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -35,7 +37,12 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "^26.0.0",
+    "@types/supertest": "^7.2.1",
+    "mongodb-memory-server": "^11.2.0",
+    "oxlint": "^1.77.0",
+    "supertest": "^7.2.2",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   }
 }
