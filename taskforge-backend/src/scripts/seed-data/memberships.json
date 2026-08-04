@@ -1,0 +1,8 @@
+[
+  { "workspace": "acme", "user": "admin", "role": "owner" },
+  { "workspace": "acme", "user": "jane", "role": "admin" },
+  { "workspace": "acme", "user": "john", "role": "member" },
+  { "workspace": "acme", "user": "sarah", "role": "viewer" },
+  { "workspace": "side", "user": "admin", "role": "owner" },
+  { "workspace": "side", "user": "jane", "role": "member" }
+]

@@ -1,0 +1,4 @@
+[
+  { "key": "acme", "name": "Acme Product", "slug": "acme-product", "owner": "admin" },
+  { "key": "side", "name": "Side Project", "slug": "side-project", "owner": "admin" }
+]

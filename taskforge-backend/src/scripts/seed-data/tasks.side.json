@@ -1,0 +1,17 @@
+[
+  { "title": "Set up basic Next.js scaffold", "description": "Bootstrap the app with the App Router and Tailwind, deploy an empty shell to Vercel.", "priority": "medium", "status": "open", "createdBy": "admin", "assignedTo": null },
+  { "title": "Design recipe card component", "description": "A compact card showing title, cook time, and a thumbnail for the recipe list view.", "priority": "medium", "status": "open", "createdBy": "jane", "assignedTo": "jane", "dueDateOffsetDays": 9 },
+  { "title": "Sketch out data model for recipes and tags", "description": "Recipes, ingredients, steps, and a many-to-many tag relationship for filtering.", "priority": "high", "status": "open", "createdBy": "admin", "assignedTo": "admin", "dueDateOffsetDays": 3 },
+  { "title": "Research free-tier image hosting options", "description": "Comparing Cloudinary, Vercel Blob, and S3 for recipe photo uploads.", "priority": "low", "status": "open", "createdBy": "jane", "assignedTo": null },
+
+  { "title": "Build recipe list page", "description": "Grid layout of recipe cards with client-side sort by name or cook time.", "priority": "high", "status": "in_progress", "createdBy": "admin", "assignedTo": "jane", "dueDateOffsetDays": 4 },
+  { "title": "Implement tag-based filtering", "description": "Multi-select tag filter above the recipe grid, synced to the URL query string.", "priority": "medium", "status": "in_progress", "createdBy": "jane", "assignedTo": "admin", "dueDateOffsetDays": 6 },
+  { "title": "Add markdown support for recipe steps", "description": "Render step instructions from markdown so numbered lists and notes format cleanly.", "priority": "low", "status": "in_progress", "createdBy": "admin", "assignedTo": "admin" },
+  { "title": "Set up Vercel deploy preview", "description": "Preview deployments on every PR, with a comment linking the live URL.", "priority": "low", "status": "in_progress", "createdBy": "jane", "assignedTo": "jane" },
+
+  { "title": "Verify recipe search works with special characters", "description": "Accented characters and apostrophes in titles (e.g. \"Crème brûlée\") were breaking search.", "priority": "medium", "status": "testing", "createdBy": "admin", "assignedTo": "jane", "dueDateOffsetDays": -1 },
+  { "title": "Test mobile layout on small screens", "description": "Recipe cards need to collapse to a single column below 400px.", "priority": "low", "status": "testing", "createdBy": "jane", "assignedTo": "admin" },
+
+  { "title": "Buy domain name", "description": "recipevault.app was available — registered for two years.", "priority": "low", "status": "done", "createdBy": "admin", "assignedTo": "admin" },
+  { "title": "Create GitHub repo and initial commit", "description": "Private repo, MIT license, basic README with the project pitch.", "priority": "low", "status": "done", "createdBy": "jane", "assignedTo": "jane" }
+]

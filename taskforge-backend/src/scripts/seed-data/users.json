@@ -1,0 +1,6 @@
+[
+  { "key": "admin", "name": "Admin User", "email": "admin@taskforge.com", "password": "admin123", "role": "admin" },
+  { "key": "jane", "name": "Jane Doe", "email": "jane@taskforge.com", "password": "user1234", "role": "user" },
+  { "key": "john", "name": "John Smith", "email": "john@taskforge.com", "password": "user1234", "role": "user" },
+  { "key": "sarah", "name": "Sarah Johnson", "email": "sarah@taskforge.com", "password": "user1234", "role": "user" }
+]

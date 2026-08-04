@@ -1,0 +1,3 @@
+[
+  { "workspace": "acme", "email": "mike@taskforge.com", "role": "member", "invitedBy": "admin", "expiresInDays": 7 }
+]

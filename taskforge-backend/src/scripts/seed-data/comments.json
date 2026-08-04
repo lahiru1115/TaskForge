@@ -1,0 +1,42 @@
+[
+  { "workspace": "acme", "taskIndex": 0, "author": "admin", "body": "Should we also set up shared TypeScript configs in packages/tsconfig? That would save duplication across workspaces.", "agoHours": 48 },
+  { "workspace": "acme", "taskIndex": 0, "author": "john", "body": "Good idea. I'll add a base tsconfig and extend from it. Also considering remote caching with Turborepo — worth discussing.", "agoHours": 36 },
+  { "workspace": "acme", "taskIndex": 0, "author": "admin", "body": "Agreed on remote caching. Let's use Vercel's built-in cache for now and revisit if we hit limits.", "agoHours": 24 },
+
+  { "workspace": "acme", "taskIndex": 3, "author": "jane", "body": "Should we apply different limits per role? Admins probably need higher thresholds than regular users.", "agoHours": 6 },
+  { "workspace": "acme", "taskIndex": 3, "author": "admin", "body": "Good point. Let's go with 100 req/min for users and 500 for admins. We can tighten later based on usage.", "agoHours": 4 },
+
+  { "workspace": "acme", "taskIndex": 15, "author": "john", "body": "Connection string updated in all environments. The M0 free tier has a 512 MB limit — worth keeping an eye on once real data comes in.", "agoHours": 10 },
+  { "workspace": "acme", "taskIndex": 15, "author": "admin", "body": "Already on it. Set up Atlas monitoring alerts at 80% capacity. Should be fine for the foreseeable future.", "agoHours": 7 },
+  { "workspace": "acme", "taskIndex": 15, "author": "sarah", "body": "Dev environment is connecting fine. Actually noticing lower latency compared to the local instance — nice side effect.", "agoHours": 3 },
+
+  { "workspace": "acme", "taskIndex": 17, "author": "admin", "body": "Make sure the new guards are composable — we'll need to stack role checks on some routes without duplicating logic.", "agoHours": 12 },
+  { "workspace": "acme", "taskIndex": 17, "author": "john", "body": "Implemented as higher-order functions. You can now do requireRole('admin') or requireRole('admin', 'manager'). PR is up for review.", "agoHours": 8 },
+
+  { "workspace": "acme", "taskIndex": 20, "author": "jane", "body": "300ms feels right for the debounce. Should we also cancel the previous in-flight request when a new one fires?", "agoHours": 50 },
+  { "workspace": "acme", "taskIndex": 20, "author": "admin", "body": "TanStack Query handles that automatically with the right queryKey setup — no need for manual AbortControllers.", "agoHours": 46 },
+  { "workspace": "acme", "taskIndex": 20, "author": "jane", "body": "Confirmed, works perfectly. Closing the loop on this one — ready for testing.", "agoHours": 2 },
+
+  { "workspace": "acme", "taskIndex": 30, "author": "john", "body": "Reproduced consistently. The redirect to /login clears router state, losing the intended destination. Saving the URL to sessionStorage before redirecting should fix it.", "agoHours": 20 },
+  { "workspace": "acme", "taskIndex": 30, "author": "sarah", "body": "Confirmed fix works in my local testing. Also verified with expired tokens — redirect happens cleanly and the user lands back on the right page after re-login.", "agoHours": 10 },
+  { "workspace": "acme", "taskIndex": 30, "author": "admin", "body": "Good catch on the approach. Just make sure the saved URL is validated before redirect to avoid open redirect vulnerabilities.", "agoHours": 5 },
+
+  { "workspace": "acme", "taskIndex": 32, "author": "jane", "body": "iOS Safari passes all scenarios. Android Chrome has a slight delay on initial grab — possibly the touch activation constraint being too tight. Testing with 150ms now.", "agoHours": 16 },
+  { "workspace": "acme", "taskIndex": 32, "author": "john", "body": "150ms feels much better on Android. Still seeing occasional snap-back on fast swipes — investigating if it's a collision detection issue.", "agoHours": 8 },
+
+  { "workspace": "acme", "taskIndex": 35, "author": "admin", "body": "First k6 run peaked at 420 concurrent users before response times degraded. The bottleneck appears to be in the task list query — no index on the composite filter fields.", "agoHours": 30 },
+  { "workspace": "acme", "taskIndex": 35, "author": "john", "body": "Added compound index on { status, priority, assignedTo }. Re-running the load test — early numbers look much better.", "agoHours": 18 },
+  { "workspace": "acme", "taskIndex": 35, "author": "admin", "body": "Second run hit 500 concurrent users with p99 under 200ms. That's acceptable for now. Marking ready to merge.", "agoHours": 6 },
+
+  { "workspace": "acme", "taskIndex": 43, "author": "admin", "body": "Great work using HttpOnly cookies instead of localStorage. Remember we'll need to set SameSite=None when deploying frontend and backend to separate domains.", "agoHours": 240 },
+  { "workspace": "acme", "taskIndex": 43, "author": "john", "body": "Already noted in the deployment checklist. Will flip the flag in the auth controller when we set up the prod environment.", "agoHours": 235 },
+
+  { "workspace": "acme", "taskIndex": 48, "author": "sarah", "body": "The fractional indexing approach for rank is clever — avoids reindexing the entire column on every move. Nice.", "agoHours": 120 },
+  { "workspace": "acme", "taskIndex": 48, "author": "admin", "body": "Touch support was the tricky part. The 200ms delay on TouchSensor is the sweet spot between accidental drags and intentional ones.", "agoHours": 100 },
+  { "workspace": "acme", "taskIndex": 48, "author": "jane", "body": "Tested on iPad and it's smooth. One minor thing — the drag overlay shadow could be slightly stronger for better depth perception. Could be a follow-up.", "agoHours": 80 },
+
+  { "workspace": "side", "taskIndex": 2, "author": "jane", "body": "Should tags be free-text or a fixed taxonomy? Free-text is faster to ship but gets messy fast.", "agoHours": 30 },
+  { "workspace": "side", "taskIndex": 2, "author": "admin", "body": "Let's start free-text with autocomplete against existing tags — cheap to build, and we can add normalization later if it gets messy.", "agoHours": 20 },
+
+  { "workspace": "side", "taskIndex": 8, "author": "jane", "body": "Fixed by normalizing to NFC before comparing. \"Crème brûlée\" and \"creme brulee\" both need to match now too — using a stripped-accents fallback.", "agoHours": 5 }
+]
