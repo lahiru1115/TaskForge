@@ -11,9 +11,9 @@ import { Workspace } from '../models/Workspace';
 import { WorkspaceMember, type WorkspaceRole } from '../models/WorkspaceMember';
 import { Invite } from '../models/Invite';
 
-// The narrative content (who, what, when) lives in seed-data/*.json — this
-// file is just the logic that resolves key references ("admin", "jane", a
-// task's array index) into real documents and simulates a plausible history.
+// Narrative content (who, what, when) lives in seed-data/*.json. This file
+// just resolves key references (e.g. "admin", a task's array index) into
+// real documents and simulates a plausible history.
 import usersData from './seed-data/users.json';
 import workspacesData from './seed-data/workspaces.json';
 import membershipsData from './seed-data/memberships.json';
@@ -124,7 +124,7 @@ async function seed() {
   const acmeTasks = buildTasks(acmeTasksData, workspaces.acme._id);
   const sideTasks = buildTasks(sideTasksData, workspaces.side._id);
 
-  // Rank each workspace's tasks independently, grouped by status within that workspace.
+  // Rank each workspace's tasks independently, grouped by status.
   function assignRanks(taskList: TaskSeed[]) {
     for (const status of TASK_STATUSES) {
       const group = taskList.filter((t) => t.status === status);
@@ -142,8 +142,8 @@ async function seed() {
   const tasks = [...acmeTasks, ...sideTasks];
 
   // --- Activity logs (Acme) ---
-  // Simulated timeline, not seed data — how long a task sat in each status
-  // before moving on is derived from its index, not authored per-task.
+  // Simulated timeline, not authored data — status timing is derived from
+  // index, not written per task.
 
   const nameMap: Record<string, string> = {
     [admin._id.toString()]: admin.name,
@@ -181,8 +181,8 @@ async function seed() {
     const workspace = s.workspace;
 
     if (s.status === 'open') {
-      // Tasks without an assignee are brand-new — leave them with no activity
-      // so the "No activity yet." empty state is visible in the UI.
+      // Unassigned tasks are brand-new — leave them with no activity so the
+      // empty state shows.
       if (!assignee) return;
       const t0 = ago((3 + (i % 10)) * 24);
       push({ task: task._id, actor: creator, actorName: actorName(creator), type: 'created', createdAt: t0, workspace });

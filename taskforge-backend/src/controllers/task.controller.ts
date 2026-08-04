@@ -18,10 +18,9 @@ type ValidatedReq = Request & { validatedQuery: unknown };
 
 type TaskFilter = ScopeFilter;
 
-// A plain object shape for a not-yet-inserted Activity doc. Deliberately not
-// `Parameters<typeof Activity.create>[0]` — spreading that Mongoose-inferred
-// type to add `workspace` blows up tsc with "type instantiation is excessively
-// deep" (TS2589).
+// Plain shape, not `Parameters<typeof Activity.create>[0]` — spreading that
+// Mongoose-inferred type to add `workspace` blows up tsc (TS2589, "type
+// instantiation is excessively deep").
 type ActivityDraft = {
   task: Types.ObjectId;
   actor: Types.ObjectId;
@@ -32,8 +31,8 @@ type ActivityDraft = {
   to?: string;
 };
 
-// Trash keeps the old asymmetry: workspace admins/owners see every soft-deleted
-// task, everyone else sees only the ones they created themselves.
+// Trash keeps the old asymmetry: admins/owners see every soft-deleted task,
+// everyone else sees only their own.
 function trashScopeFilter(req: Request): TaskFilter {
   const role = req.membership!.role;
   const base = role === 'owner' || role === 'admin' ? {} : { createdBy: req.user!._id };
@@ -197,7 +196,6 @@ export async function updateTask(req: Request, res: Response) {
     }
   }
 
-  // Capture old values before mutation for activity log
   const oldStatus = task.status;
   const oldPriority = task.priority;
   const oldAssignedTo = task.assignedTo?.toString() ?? null;
@@ -213,7 +211,7 @@ export async function updateTask(req: Request, res: Response) {
     { path: 'assignedTo', select: 'name email' },
   ]);
 
-  // Append activity records for each meaningful change (rank excluded)
+  // One record per meaningful change; rank excluded.
   const actorId = req.user!._id;
   const actorName = req.user!.name;
   const acts: ActivityDraft[] = [];

@@ -1,6 +1,8 @@
 # TaskForge
 
-A full-stack task management app with role-based access control. Admins see and manage all tasks; regular users see only tasks they created or are assigned to.
+A full-stack task management app with workspace-based multi-tenancy. Each workspace has its own tasks and members, with roles (owner/admin/member/viewer) controlling access.
+
+> The frontend hasn't been updated to expose workspaces yet — see `docs/SCALING.md` Phase 1. The API below is current; the UI still calls the pre-workspace routes and won't work end-to-end until that lands.
 
 **Stack:** React + Vite + TypeScript · Express 5 + TypeScript · MongoDB Atlas · shadcn/ui + Tailwind · TanStack Query · JWT (HttpOnly cookie)
 
@@ -9,7 +11,7 @@ A full-stack task management app with role-based access control. Admins see and 
 ## Features
 
 - **Auth** — register (auto-login), login, logout; JWT stored in an HttpOnly cookie — never exposed to JavaScript
-- **Role-based access** — admin sees all tasks; users see only their tasks (enforced at the API, not just the UI)
+- **Workspace-scoped access** — every task, comment, and activity record belongs to a workspace; only active members see it, and role (owner/admin/member/viewer) controls what they can do (enforced at the API, not just the UI)
 - **Task CRUD** — create, view, edit, delete with title, description, priority, status, due date, and assignee
 - **Status workflow** — Open → In Progress → Testing → Done
 - **Assignee-only edit** — assigned users can update status only; full edit requires creator or admin
@@ -156,15 +158,20 @@ cd taskforge-frontend && npm run build
 | POST | `/api/auth/login` | — | Login, set auth cookie |
 | POST | `/api/auth/logout` | Cookie | Clear auth cookie |
 | GET | `/api/auth/me` | Cookie | Current user |
-| GET | `/api/users` | Cookie | List users (for assign dropdown) |
-| GET | `/api/tasks` | Cookie | List tasks (role-scoped) |
-| GET | `/api/tasks/stats` | Cookie | Dashboard stats |
-| POST | `/api/tasks` | Cookie | Create task |
-| GET | `/api/tasks/:id` | Cookie | Task detail |
-| PATCH | `/api/tasks/:id` | Cookie | Update task (status + rank for assignees; all fields for creator/admin) |
-| DELETE | `/api/tasks/:id` | Cookie | Delete task (creator or admin only) |
-| GET | `/api/tasks/:id/comments` | Cookie | List comments for a task |
-| POST | `/api/tasks/:id/comments` | Cookie | Add a comment |
-| DELETE | `/api/tasks/:id/comments/:commentId` | Cookie | Delete a comment (author or admin only) |
+| PATCH | `/api/users/me` | Cookie | Update profile |
+| PATCH | `/api/users/me/password` | Cookie | Change password |
+| GET | `/api/workspaces` | Cookie | List workspaces the caller belongs to |
+| POST | `/api/workspaces` | Cookie | Create a workspace (caller becomes owner) |
+| GET | `/api/workspaces/:slug` | Cookie | Workspace details |
+| GET | `/api/workspaces/:slug/members` | Cookie | List members |
+| POST | `/api/workspaces/:slug/invites` | Cookie, owner/admin | Invite a member by email |
+| POST | `/api/invites/:token/accept` | Cookie | Accept an invite |
+| GET | `/api/workspaces/:slug/tasks` | Cookie | List tasks in the workspace |
+| POST | `/api/workspaces/:slug/tasks` | Cookie | Create a task |
+| GET | `/api/workspaces/:slug/tasks/:id` | Cookie | Task detail |
+| PATCH | `/api/workspaces/:slug/tasks/:id` | Cookie | Update task (status/rank for `member`; all fields for creator/owner/admin) |
+| DELETE | `/api/workspaces/:slug/tasks/:id` | Cookie | Delete task (creator, owner, or admin only) |
+| GET | `/api/workspaces/:slug/tasks/:id/comments` | Cookie | List comments |
+| POST | `/api/workspaces/:slug/tasks/:id/comments` | Cookie | Add a comment |
 
-Non-admins receive `404` (not `403`) for tasks they don't own — existence is not leaked.
+Not exhaustive — bulk update/delete, trash, restore, and activity endpoints exist too. Non-members get `404` (not `403`) for workspaces they're not in, same for tasks outside their workspace — existence is never leaked.

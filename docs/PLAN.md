@@ -12,24 +12,32 @@
 
 ## Data Model
 
-**User** — `name`, `email` (unique, lowercased), `passwordHash`, `role: admin|user`, timestamps
+**User** — `name`, `email` (unique, lowercased), `passwordHash`, `role: admin|user` (platform-level only — see Authorization), timestamps
 
-**Task** — `title`, `description`, `priority: low|medium|high`, `status: open|in_progress|testing|done`, `dueDate`, `rank` (fractional-index string for Kanban ordering), `createdBy→User`, `assignedTo→User|null`, timestamps
+**Workspace** — `name`, `slug` (unique), `owner→User`, timestamps
 
-**Activity** — `task→Task`, `actor→User`, `actorName`, `type: created|status_changed|assigned|unassigned|edited`, `from`, `to`, timestamps
+**WorkspaceMember** — `workspace→Workspace`, `user→User`, `role: owner|admin|member|viewer`, `status: active|invited`, unique on `(workspace, user)`, timestamps
 
-**Comment** — `task→Task`, `author→User`, `authorName`, `body` (max 5000 chars), timestamps
+**Invite** — `workspace→Workspace`, `email`, `role`, `tokenHash` (SHA-256, raw token never stored), `invitedBy→User`, `expiresAt`, `acceptedAt`, timestamps
+
+**Task** — `title`, `description`, `priority: low|medium|high`, `status: open|in_progress|testing|done`, `dueDate`, `rank` (fractional-index string for Kanban ordering), `createdBy→User`, `assignedTo→User|null`, `workspace→Workspace`, timestamps
+
+**Activity** — `task→Task`, `actor→User`, `actorName`, `type: created|status_changed|priority_changed|assigned|unassigned|edited`, `from`, `to`, `workspace→Workspace`, timestamps
+
+**Comment** — `task→Task`, `author→User`, `authorName`, `body` (max 5000 chars), `workspace→Workspace`, timestamps
 
 ---
 
 ## Authorization
 
-Role rules live in `controllers/task.controller.ts`:
+Workspace-scoped. Role rules live in `services/authz.ts`, applied once `middleware/workspace.ts` has resolved `req.workspace`/`req.membership`:
 
-- `visibilityFilter(user)` — Mongoose filter: `{}` for admins; `{ $or: [{ createdBy }, { assignedTo }] }` for regular users. Applied on every list/aggregate.
-- `canManage` = admin or creator. `canView` = admin, creator, or assignee.
-- Assignees may only change `status` and `rank` on update; all other fields require `canManage`.
-- Out-of-scope tasks return **404** (not 403) — existence is never leaked.
+- `scopeFilter(req)` — every list/aggregate query is `{ workspace: req.workspace._id, deletedAt: null }`. Any active member sees everything in their workspace, regardless of role.
+- `canManage` = workspace owner/admin, or the task's creator. `canView` = task belongs to the resolved workspace. `canWrite` = any role except `viewer`.
+- Non-creators without manage rights may only change `status`/`rank`; `viewer`s can't write at all.
+- Non-member workspace access and out-of-scope tasks both return **404** (not 403) — existence is never leaked.
+
+See `docs/SCALING.md` Phase 1 for the workspace/membership/invite model this replaced (frontend not yet updated to expose it).
 
 ---
 

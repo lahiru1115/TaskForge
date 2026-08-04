@@ -26,9 +26,8 @@ export async function createInvite(req: Request, res: Response) {
     expiresAt: new Date(Date.now() + INVITE_TTL_MS),
   });
 
-  // Real delivery (email) is Phase 3 — for now the raw token is returned once
-  // in the response, since only its hash is ever persisted and it can't be
-  // recovered after this.
+  // Email delivery is Phase 3. Token is returned once here — only its hash
+  // is persisted, so it's unrecoverable after this.
   res.status(201).json({
     invite: { _id: invite._id, email: invite.email, role: invite.role, expiresAt: invite.expiresAt },
     token,
@@ -58,8 +57,8 @@ export async function acceptInvite(req: Request, res: Response) {
   const tokenHash = hashToken(token);
 
   const invite = await Invite.findOne({ tokenHash });
-  // The TTL index eventually garbage-collects expired invites, but that sweep
-  // isn't instant — this explicit check is what actually enforces expiry.
+  // The TTL index garbage-collects expired invites eventually, not instantly —
+  // this check is what actually enforces expiry.
   if (!invite || invite.acceptedAt || invite.expiresAt < new Date()) {
     throw ApiError.notFound('Invite not found or expired');
   }

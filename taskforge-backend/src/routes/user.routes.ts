@@ -7,8 +7,8 @@ import { updateMe, changePassword } from '../controllers/user.controller';
 
 const router = Router();
 
-// Global "list all users" is gone — GET /api/workspaces/:slug/members replaces
-// it, scoped to co-members instead of every user in the database.
+// Global "list all users" is gone — replaced by GET /api/workspaces/:slug/members,
+// scoped to co-members instead of every user in the database.
 router.patch('/me', authenticate, validate({ body: updateProfileSchema }), asyncHandler(updateMe));
 router.patch('/me/password', authenticate, validate({ body: changePasswordSchema }), asyncHandler(changePassword));
 

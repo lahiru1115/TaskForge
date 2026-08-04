@@ -4,11 +4,10 @@ import { ITask } from '../models/Task';
 export type ScopeFilter = Record<string, unknown>;
 
 /**
- * The base Mongo filter for every task/comment list or aggregate query once a
- * workspace has been resolved: everything in this workspace, not soft-deleted.
- * Every active member — any role — can see everything in their workspace; the
- * old per-user narrowing survives only as an opt-in `?mine=true` UI filter,
- * never as the default and never as a security boundary.
+ * Base filter for task/comment queries once a workspace is resolved: this
+ * workspace, not soft-deleted. Every member sees everything in it regardless
+ * of role — the old per-user narrowing survives only as opt-in `?mine=true`,
+ * never the default and never a security boundary.
  */
 export function scopeFilter(req: Request, opts: { mine?: boolean } = {}): ScopeFilter {
   const filter: ScopeFilter = { workspace: req.workspace!._id, deletedAt: null };
@@ -24,7 +23,7 @@ export function scopeFilter(req: Request, opts: { mine?: boolean } = {}): ScopeF
  * belongs to the workspace named in the URL — not the caller's role.
  */
 export function canView(task: ITask, req: Request): boolean {
-  return !!task.workspace && task.workspace.equals(req.workspace!._id);
+  return task.workspace.equals(req.workspace!._id);
 }
 
 /**
@@ -37,9 +36,8 @@ export function canManage(task: ITask, req: Request): boolean {
 }
 
 /**
- * Any write action at all — create a task, add a comment, or (without full
- * manage rights) move an existing task's status/rank. `viewer` is the only
- * role this excludes; everyone else in the workspace can write.
+ * Any write — create a task, add a comment, or (without full manage rights)
+ * move a task's status/rank. Excludes only `viewer`; every other role can write.
  */
 export function canWrite(req: Request): boolean {
   const role = req.membership!.role;

@@ -9,8 +9,8 @@ const router = Router();
 
 router.use(authenticate);
 
-// Not nested under /:slug — the token itself identifies the workspace, and
-// the caller isn't a member yet, so resolveWorkspace can't run here.
+// Not nested under /:slug — the token identifies the workspace, and the
+// caller isn't a member yet, so resolveWorkspace can't run here.
 router.post('/:token/accept', validate({ params: tokenParamSchema }), asyncHandler(acceptInvite));
 
 export default router;

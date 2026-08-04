@@ -5,9 +5,9 @@ import { ApiError } from '../utils/ApiError';
 import { asyncHandler } from '../utils/asyncHandler';
 
 /**
- * Loads the workspace named by :slug and the caller's active membership in it,
- * attaching req.workspace / req.membership. Must run after authenticate.
- * Non-existent workspaces and non-members both 404 — existence is never leaked.
+ * Loads the workspace named by :slug and the caller's membership, attaching
+ * req.workspace / req.membership. Must run after authenticate. Non-existent
+ * workspaces and non-members both 404 — no existence leak.
  */
 export const resolveWorkspace = asyncHandler(
   async (req: Request, _res: Response, next: NextFunction) => {

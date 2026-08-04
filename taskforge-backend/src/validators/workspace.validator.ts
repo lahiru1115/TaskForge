@@ -11,8 +11,8 @@ const slug = z
   .max(50)
   .regex(/^[a-z0-9-]+$/, 'Use lowercase letters, numbers, and hyphens only');
 
-// Role assignment never accepts 'owner' — ownership transfer isn't a feature
-// here, so it can't be granted through the member-role or invite endpoints.
+// Never accepts 'owner' — no ownership-transfer feature, so it can't be
+// granted through the member-role or invite endpoints.
 const assignableRole = z.enum(WORKSPACE_ROLES.filter((r) => r !== 'owner') as [string, ...string[]]);
 
 export const createWorkspaceSchema = z.object({

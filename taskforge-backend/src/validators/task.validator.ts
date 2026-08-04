@@ -38,8 +38,8 @@ export const listTasksQuerySchema = z.object({
   status: z.enum(TASK_STATUSES as [string, ...string[]]).optional(),
   priority: z.enum(TASK_PRIORITIES as [string, ...string[]]).optional(),
   assignedTo: objectId.optional(),
-  // UI convenience only, not a security boundary — every workspace member can
-  // already see every task; this just narrows the list to their own.
+  // UI convenience, not a security boundary — every member already sees
+  // every task; this just narrows the list to their own.
   mine: z.coerce.boolean().optional().default(false),
   sort: z
     .enum(['createdAt', '-createdAt', 'dueDate', '-dueDate', 'priority', '-priority'])

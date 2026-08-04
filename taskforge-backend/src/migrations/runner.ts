@@ -7,14 +7,12 @@ export type MigrationModule = {
   up: () => Promise<void>;
 };
 
-// Migrations run in this order, top to bottom. Explicit registration, not
-// filesystem auto-discovery — what runs, and in what order, is always
-// visible in one place here rather than implied by file naming, and a
-// migration can never accidentally run before it's actually ready to.
+// Runs top to bottom. Explicit registration, not filesystem auto-discovery —
+// what runs and in what order stays visible here, and nothing runs before
+// it's deliberately added.
 //
 // To add one: write src/migrations/00N-description.ts exporting a default
-// `{ name, up }` (see 001-workspaces.ts), import it above, and append it
-// to this array.
+// `{ name, up }` (see 001-workspaces.ts), then import and append it above.
 const MIGRATIONS: MigrationModule[] = [migration001];
 
 async function run() {

@@ -55,8 +55,8 @@ router.patch(
   validate({ params: memberParamsSchema, body: updateMemberSchema }),
   asyncHandler(updateMember)
 );
-// No blanket requireWorkspaceRole here — removeMember allows self-removal
-// (leaving a workspace) in addition to owner/admin removing someone else.
+// No blanket requireWorkspaceRole — removeMember also allows self-removal
+// (leaving), not just owner/admin removing someone else.
 router.delete(
   '/:slug/members/:userId',
   resolveWorkspace,

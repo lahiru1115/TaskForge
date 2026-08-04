@@ -70,8 +70,8 @@ async function up(): Promise<void> {
   ]);
   const orphanTotal = orphanTasks + orphanComments + orphanActivities;
   if (orphanTotal > 0) {
-    // Thrown, not process.exit(1) — this file no longer owns the DB connection
-    // or the exit code. The runner decides what happens when a migration fails.
+    // Thrown, not process.exit(1) — this file doesn't own the connection or
+    // exit code; the runner does.
     throw new Error(
       `Verification failed: ${orphanTotal} document(s) still missing workspace ` +
         `(Task=${orphanTasks}, Comment=${orphanComments}, Activity=${orphanActivities}).`

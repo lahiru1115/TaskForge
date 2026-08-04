@@ -66,8 +66,8 @@ export async function updateWorkspace(req: Request, res: Response) {
 export async function deleteWorkspace(req: Request, res: Response) {
   const workspaceId = req.workspace!._id;
 
-  // Children first, then the workspace itself — no FK enforcement in Mongo,
-  // but it's the defensible order if this ever gets interrupted mid-way.
+  // Children first, then the workspace — no FK enforcement in Mongo, but the
+  // safer order if this gets interrupted mid-way.
   await Promise.all([
     Task.deleteMany({ workspace: workspaceId }),
     Comment.deleteMany({ workspace: workspaceId }),

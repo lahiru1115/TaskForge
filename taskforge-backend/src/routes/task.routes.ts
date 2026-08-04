@@ -26,9 +26,8 @@ import {
 import { listComments, addComment, deleteComment } from '../controllers/comment.controller';
 import { addCommentSchema, commentParamsSchema } from '../validators/comment.validator';
 
-// mergeParams: mounted under /:slug/tasks (see workspace.routes.ts) — needs
-// access to the parent's :slug. authenticate + resolveWorkspace already ran
-// there, so this router assumes req.user / req.workspace / req.membership.
+// mergeParams: mounted under /:slug/tasks (workspace.routes.ts), which already
+// ran authenticate + resolveWorkspace — assumes req.user/workspace/membership.
 const router = Router({ mergeParams: true });
 
 router.get('/stats', asyncHandler(getTaskStats));
