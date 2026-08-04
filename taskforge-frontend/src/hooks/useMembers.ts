@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
+import type { CreateInviteInput } from '@/lib/schemas'
 import type { WorkspaceRole } from './useWorkspaces'
 
 // Backend rejects 'owner' on both endpoints — no side door to ownership transfer.
-type AssignableRole = Exclude<WorkspaceRole, 'owner'>
+export type AssignableRole = Exclude<WorkspaceRole, 'owner'>
 
 export interface Member {
   _id: string
@@ -77,11 +78,6 @@ export function useInvites(slug: string | undefined) {
   })
 }
 
-export interface CreateInviteInput {
-  email: string
-  role: AssignableRole
-}
-
 export function useCreateInvite(slug: string) {
   const qc = useQueryClient()
   return useMutation({
@@ -106,10 +102,14 @@ export function useRevokeInvite(slug: string) {
 }
 
 export function useAcceptInvite() {
+  const qc = useQueryClient()
   return useMutation({
     mutationFn: async (token: string) => {
       const { data } = await api.post(`/api/invites/${token}/accept`)
       return data as { workspaceId: string }
     },
+    // Response only carries the workspace's id, not its slug — refetch the
+    // list so the newly-joined workspace shows up wherever the caller lands.
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['workspaces'] }),
   })
 }

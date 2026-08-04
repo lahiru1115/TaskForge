@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
+import type { CreateWorkspaceInput } from '@/lib/schemas'
 
 export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer'
 
@@ -36,11 +37,6 @@ export function useWorkspace(slug: string | undefined) {
     },
     enabled: !!slug,
   })
-}
-
-export interface CreateWorkspaceInput {
-  name: string
-  slug: string
 }
 
 export function useCreateWorkspace() {
