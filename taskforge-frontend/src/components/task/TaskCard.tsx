@@ -3,6 +3,7 @@ import { CalendarDays, User } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatusBadge from '@/components/shared/StatusBadge'
 import PriorityBadge from '@/components/shared/PriorityBadge'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import type { Task } from '@/hooks/useTasks'
 
 function fmt(iso: string) {
@@ -14,8 +15,9 @@ function isOverdue(task: Task) {
 }
 
 export default function TaskCard({ task }: { task: Task }) {
+  const { slug } = useCurrentWorkspace()
   return (
-    <Link to={`/tasks/${task._id}`} state={{ from: '/tasks' }} className="group block">
+    <Link to={`/w/${slug}/tasks/${task._id}`} state={{ from: `/w/${slug}/tasks` }} className="group block">
       <Card className="h-full transition-shadow group-hover:shadow-md">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">

@@ -3,6 +3,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Link } from 'react-router-dom'
 import { CalendarDays, GripVertical, User } from 'lucide-react'
 import PriorityBadge from '@/components/shared/PriorityBadge'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import type { Task } from '@/hooks/useTasks'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +21,7 @@ interface BoardCardProps {
 }
 
 export default function BoardCard({ task, isDragOverlay = false }: BoardCardProps) {
+  const { slug } = useCurrentWorkspace()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task._id,
     data: { task },
@@ -54,8 +56,8 @@ export default function BoardCard({ task, isDragOverlay = false }: BoardCardProp
               Inline link = pointer cursor only over actual text, not full row width. */}
           <div className="line-clamp-2 text-sm font-medium leading-snug">
             <Link
-              to={`/tasks/${task._id}`}
-              state={{ from: '/board' }}
+              to={`/w/${slug}/tasks/${task._id}`}
+              state={{ from: `/w/${slug}/board` }}
               onClick={(e) => isDragging && e.preventDefault()}
               className="hover:underline underline-offset-2"
             >

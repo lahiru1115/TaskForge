@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useTaskStats, type TaskFilters } from '@/hooks/useTasks'
 import { useAuth } from '@/context/AuthContext'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -42,13 +43,14 @@ interface StatCardProps {
 
 function StatCard({ label, value, icon: Icon, color, accent, blob, loading, filter }: StatCardProps) {
   const navigate = useNavigate()
+  const { slug } = useCurrentWorkspace()
 
   function handleClick() {
     sessionStorage.setItem(
       TASKS_STORAGE_KEY,
       JSON.stringify({ view: 'table', filters: { ...BASE_FILTERS, ...filter } }),
     )
-    navigate('/tasks')
+    navigate(`/w/${slug}/tasks`)
   }
 
   return (
@@ -162,6 +164,7 @@ const PRIORITY_CARDS = [
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const { slug } = useCurrentWorkspace()
   const { data: stats, isLoading, isError } = useTaskStats()
 
   return (
@@ -176,7 +179,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Button asChild>
-          <Link to="/tasks">
+          <Link to={`/w/${slug}/tasks`}>
             View all tasks <ArrowRight className="ml-2 size-4" />
           </Link>
         </Button>

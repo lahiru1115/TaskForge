@@ -4,6 +4,7 @@ import StatusBadge from '@/components/shared/StatusBadge'
 import PriorityBadge from '@/components/shared/PriorityBadge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/context/AuthContext'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { cn } from '@/lib/utils'
 import type { Task } from '@/hooks/useTasks'
 
@@ -24,6 +25,7 @@ interface TaskTableProps {
 
 export default function TaskTable({ tasks, selected, onToggle, onToggleAll }: TaskTableProps) {
   const { isAdmin } = useAuth()
+  const { slug } = useCurrentWorkspace()
   const allSelected = tasks.length > 0 && tasks.every((t) => selected.has(t._id))
   const someSelected = !allSelected && tasks.some((t) => selected.has(t._id))
 
@@ -64,8 +66,8 @@ export default function TaskTable({ tasks, selected, onToggle, onToggleAll }: Ta
               </td>
               <td className="px-4 py-3">
                 <Link
-                  to={`/tasks/${task._id}`}
-                  state={{ from: '/tasks' }}
+                  to={`/w/${slug}/tasks/${task._id}`}
+                  state={{ from: `/w/${slug}/tasks` }}
                   className="font-medium text-foreground hover:underline underline-offset-2"
                 >
                   {task.title}

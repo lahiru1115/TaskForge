@@ -14,6 +14,7 @@ import {
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTasks, type Task } from '@/hooks/useTasks'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import CreateTaskDialog from '@/components/task/CreateTaskDialog'
 import DayOverflowDialog from '@/components/calendar/DayOverflowDialog'
 import { Button } from '@/components/ui/button'
@@ -34,6 +35,7 @@ const MAX_VISIBLE = 3
 type DayState = { dateStr: string; tasks: Task[] } | null
 
 export default function CalendarPage() {
+  const { slug } = useCurrentWorkspace()
   const [displayMonth, setDisplayMonth] = useState(new Date())
   const [createDate, setCreateDate] = useState<string | null>(null)
   const [overflow, setOverflow] = useState<DayState>(null)
@@ -179,7 +181,7 @@ export default function CalendarPage() {
                       {visible.map((task) => (
                         <Link
                           key={task._id}
-                          to={`/tasks/${task._id}`}
+                          to={`/w/${slug}/tasks/${task._id}`}
                           title={task.title}
                           onClick={(e) => e.stopPropagation()}
                           className={cn(

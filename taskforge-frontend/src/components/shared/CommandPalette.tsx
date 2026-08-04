@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Trash2,
   User,
+  Users,
   Sun,
   Moon,
   LogOut,
@@ -21,6 +22,7 @@ import {
   CommandItem,
 } from '@/components/ui/command'
 import { useAuth } from '@/context/AuthContext'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { useDarkMode } from '@/hooks/useDarkMode'
 import type { Task, TasksResponse } from '@/hooks/useTasks'
 
@@ -47,6 +49,7 @@ export default function CommandPalette() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { logout } = useAuth()
+  const { slug } = useCurrentWorkspace()
   const [dark, toggleDark] = useDarkMode()
 
   useEffect(() => {
@@ -85,27 +88,31 @@ export default function CommandPalette() {
         <CommandEmpty>No results found.</CommandEmpty>
 
         <CommandGroup heading="Navigate">
-          <CommandItem onSelect={() => runCommand(() => navigate('/'))}>
+          <CommandItem onSelect={() => runCommand(() => navigate(`/w/${slug}`))}>
             <LayoutDashboard />
             Dashboard
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => navigate('/tasks'))}>
+          <CommandItem onSelect={() => runCommand(() => navigate(`/w/${slug}/tasks`))}>
             <ClipboardList />
             Tasks
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => navigate('/board'))}>
+          <CommandItem onSelect={() => runCommand(() => navigate(`/w/${slug}/board`))}>
             <Kanban />
             Board
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => navigate('/calendar'))}>
+          <CommandItem onSelect={() => runCommand(() => navigate(`/w/${slug}/calendar`))}>
             <CalendarDays />
             Calendar
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => navigate('/trash'))}>
+          <CommandItem onSelect={() => runCommand(() => navigate(`/w/${slug}/trash`))}>
             <Trash2 />
             Trash
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => navigate('/profile'))}>
+          <CommandItem onSelect={() => runCommand(() => navigate(`/w/${slug}/settings/members`))}>
+            <Users />
+            Members
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(`/w/${slug}/profile`))}>
             <User />
             Profile
           </CommandItem>
@@ -117,7 +124,11 @@ export default function CommandPalette() {
               <CommandItem
                 key={task._id}
                 value={`${task.title} ${task._id}`}
-                onSelect={() => runCommand(() => navigate(`/tasks/${task._id}`, { state: { from: '/tasks' } }))}
+                onSelect={() =>
+                  runCommand(() =>
+                    navigate(`/w/${slug}/tasks/${task._id}`, { state: { from: `/w/${slug}/tasks` } }),
+                  )
+                }
               >
                 <ClipboardList />
                 <span className="truncate">{task.title}</span>

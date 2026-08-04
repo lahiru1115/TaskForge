@@ -3,6 +3,7 @@ import { ArrowLeft, CalendarDays, User, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTask, useDeleteTask, useRestoreTask } from '@/hooks/useTasks'
 import { useAuth } from '@/context/AuthContext'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import StatusBadge from '@/components/shared/StatusBadge'
 import PriorityBadge from '@/components/shared/PriorityBadge'
 import EditTaskDialog from '@/components/task/EditTaskDialog'
@@ -36,6 +37,7 @@ export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
+  const { slug } = useCurrentWorkspace()
 
   const { data: task, isLoading, isError } = useTask(id!)
   const remove = useDeleteTask()
@@ -72,7 +74,7 @@ export default function TaskDetailPage() {
     return (
       <div className="py-20 text-center">
         <p className="text-destructive">Task not found.</p>
-        <Link to="/tasks" className="mt-2 inline-block text-sm text-primary underline underline-offset-4">
+        <Link to={`/w/${slug}/tasks`} className="mt-2 inline-block text-sm text-primary underline underline-offset-4">
           Back to tasks
         </Link>
       </div>
