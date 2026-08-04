@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, Sun, Moon, Menu, X, CalendarDays, LayoutDashboard, ClipboardList, Kanban, Trash2 } from 'lucide-react'
+import { LogOut, Sun, Moon, Menu, X, CalendarDays, LayoutDashboard, ClipboardList, Kanban, Trash2, Search } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { useDarkMode } from '@/hooks/useDarkMode'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import AppLogo from '@/components/shared/AppLogo'
+import { OPEN_COMMAND_PALETTE_EVENT } from '@/components/shared/CommandPalette'
 
 const NAV_LINK_CLASS = 'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors'
 const ACTIVE_CLASS = 'bg-accent text-accent-foreground'
@@ -17,17 +19,6 @@ const NAV_ITEMS = [
   { to: '/calendar', label: 'Calendar',  Icon: CalendarDays,    end: true  },
   { to: '/trash',    label: 'Trash',     Icon: Trash2,          end: true  },
 ] as const
-
-function useDarkMode() {
-  const [dark, setDark] = useState(() => localStorage.getItem('tf-theme') === 'dark')
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark)
-    localStorage.setItem('tf-theme', dark ? 'dark' : 'light')
-  }, [dark])
-
-  return [dark, () => setDark((d) => !d)] as const
-}
 
 export default function Navbar() {
   const { user, isAdmin, logout } = useAuth()
@@ -72,6 +63,16 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden items-center gap-2 text-muted-foreground sm:flex"
+            onClick={() => window.dispatchEvent(new Event(OPEN_COMMAND_PALETTE_EVENT))}
+          >
+            <Search className="size-3.5" />
+            Search
+            <kbd className="ml-1 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
+          </Button>
           {user && (
             <>
               <Link

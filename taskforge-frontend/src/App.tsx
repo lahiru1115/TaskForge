@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
 import Navbar from '@/components/layout/Navbar'
+import CommandPalette from '@/components/shared/CommandPalette'
 import LoginPage from '@/pages/Login'
 import RegisterPage from '@/pages/Register'
 import DashboardPage from '@/pages/Dashboard'
@@ -15,6 +16,7 @@ function AppLayout() {
   return (
     <>
       <Navbar />
+      <CommandPalette />
       <main className="mx-auto max-w-7xl px-4 py-6">
         <Outlet />
       </main>
