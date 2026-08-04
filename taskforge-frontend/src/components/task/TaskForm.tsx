@@ -50,7 +50,7 @@ export default function TaskForm({
           <SelectTrigger className="w-full" aria-invalid={!!form.formState.errors.status}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectItem value="open">Open</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="testing">Testing</SelectItem>
@@ -106,7 +106,7 @@ export default function TaskForm({
                     <SelectTrigger className="w-full" aria-invalid={!!form.formState.errors.priority}>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -144,7 +144,7 @@ export default function TaskForm({
                       <SelectTrigger className="w-full" aria-invalid={!!form.formState.errors.assignedTo}>
                         <SelectValue placeholder="Unassigned" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper">
                         <SelectItem value="_none">Unassigned</SelectItem>
                         {users.map((u) => (
                           <SelectItem key={u._id} value={u._id}>

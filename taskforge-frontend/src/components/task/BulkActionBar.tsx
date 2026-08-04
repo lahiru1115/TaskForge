@@ -111,7 +111,7 @@ export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
         >
           <SelectValue placeholder="Change status" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent position="popper">
           {STATUS_OPTIONS.map((o) => (
             <SelectItem key={o.value} value={o.value}>
               {o.label}
@@ -127,7 +127,7 @@ export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
         >
           <SelectValue placeholder="Reassign" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent position="popper">
           <SelectItem value={UNASSIGN}>Unassigned</SelectItem>
           {users.map((u) => (
             <SelectItem key={u._id} value={u._id}>

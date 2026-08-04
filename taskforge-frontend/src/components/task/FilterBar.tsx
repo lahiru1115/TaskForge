@@ -58,7 +58,7 @@ export function FilterSelect({
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent position="popper">
         <SelectItem value="_all">{placeholder}</SelectItem>
         {options.map((o) => (
           <SelectItem key={o.value} value={o.value}>
