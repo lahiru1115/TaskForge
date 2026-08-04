@@ -110,4 +110,4 @@ React 18 + Vite + TypeScript SPA. Key conventions:
 
 ### Environment variable
 
-`VITE_API_URL` in `taskforge-frontend/.env` — the base URL for the Axios instance (e.g. `http://localhost:4000`). Must be set before running the dev server.
+`VITE_API_URL` in `taskforge-frontend/.env` — the base URL for the Axios instance (e.g. `http://localhost:3000`). Must be set before running the dev server.

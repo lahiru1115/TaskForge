@@ -101,7 +101,7 @@ Render's health check path should be left **blank for now** — the API currentl
 
 This is baked in at **build time**, not read at runtime. Changing it requires a redeploy, not just a restart.
 
-> If `VITE_API_URL` is unset the app silently falls back to `http://localhost:3000` (`taskforge-frontend/src/lib/api.ts:4`) — which is also the wrong port for local dev, where the API listens on `4000`. Verify the variable is set on every environment you deploy to.
+> If `VITE_API_URL` is unset, the app falls back to `http://localhost:3000` (`taskforge-frontend/src/lib/api.ts:4`) — fine for local dev, wrong in production. Verify the variable is set on every deployed environment.
 
 ### SPA routing — required
 

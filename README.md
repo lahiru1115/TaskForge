@@ -64,7 +64,7 @@ Edit `.env` and fill in the required values:
 |-----------------|----------|-------------|
 | `MONGODB_URI`   | Yes      | MongoDB Atlas connection string |
 | `JWT_SECRET`    | Yes      | Long random string for signing tokens |
-| `PORT`          | No       | API port (default `4000`) |
+| `PORT`          | No       | API port (default `3000`) |
 | `CLIENT_ORIGIN` | No       | Frontend origin for CORS (default `http://localhost:5173`) |
 | `JWT_EXPIRES_IN`| No       | Token lifetime (default `7d`) |
 
@@ -76,7 +76,7 @@ cp .env.example .env
 ```
 
 ```env
-VITE_API_URL=http://localhost:4000
+VITE_API_URL=http://localhost:3000
 ```
 
 ---
@@ -98,7 +98,7 @@ npm run dev
 ```
 
 Frontend: http://localhost:5173
-API: http://localhost:4000
+API: http://localhost:3000
 
 ---
 

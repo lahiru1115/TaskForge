@@ -16,7 +16,7 @@ There is also live doc drift that undercuts the repo's credibility:
 - [x] `docs/AWS_DEPLOYMENT.md` described an EC2+nginx+PM2+Amplify deploy while `docs/PLAN.md:67-68` claimed Render+Vercel. **Resolved** — `docs/RENDER_VERCEL_DEPLOYMENT.md` now documents the live Render+Vercel topology and labels the AWS guide as an alternative reference architecture. The AWS doc still references `ecosystem.config.cjs` and `amplify.yml` that don't exist in the tree; commit those or mark them as to-be-created if that path is ever revived.
 - [ ] `docs/PLAN.md:7` says React 18 + Router v6; actual is React 19 + Router v7.
 - [ ] `docs/PLAN.md:39` says the cookie is `SameSite=Strict`; production sets `none` (`auth.controller.ts:24`).
-- [ ] `docs/PLAN.md:70` checks off a `.env.example` port fix that never happened — `taskforge-frontend/.env.example` still says `3000`, **and so does the Axios fallback at `taskforge-frontend/src/lib/api.ts:4`**.
+- [x] `docs/PLAN.md:70` claimed a port fix that hadn't landed. Resolved by standardizing on port `3000` everywhere.
 
 **Intended outcome:** six independently shippable phases taking TaskForge from a single-tenant demo to a multi-tenant, real-time, tested, observable application.
 
@@ -78,11 +78,11 @@ Ships first: nothing here touches the data model, and everything downstream need
 
 **Docs truth-up**
 - [x] Add `docs/RENDER_VERCEL_DEPLOYMENT.md` covering the real Render + Vercel topology, env var tables, and the cross-site cookie/CORS reasoning. `docs/AWS_DEPLOYMENT.md` is kept as an alternative reference architecture and cross-linked from it.
-- [ ] Fix `docs/PLAN.md`: React 19 / Router v7 (line 7), `SameSite=None` in prod (line 39), uncheck line 70.
+- [x] Fix `docs/PLAN.md`: React 19 / Router v7 (line 7), `SameSite=None` in prod (line 39), uncheck line 70.
 - [ ] New `docs/ARCHITECTURE.md` with a mermaid request-flow diagram — this becomes the file you link in applications.
 
 **Real bugs**
-- [ ] `taskforge-frontend/.env.example` **and** `taskforge-frontend/src/lib/api.ts:4`: `3000` → `4000`. Fixing only the first leaves the fallback broken whenever `VITE_API_URL` is unset.
+- [x] Standardize on port `3000`: backend default (`config/env.ts`), both `.env`/`.env.example` pairs, and the Axios fallback (`src/lib/api.ts:4`).
 - [ ] Move `taskforge-backend/src/seed.ts` → `src/scripts/seed.ts` (`reset-db.ts` is already there); update `package.json`.
 
 **Infra as code**

@@ -10,7 +10,7 @@ function required(name: string, value: string | undefined): string {
 }
 
 export const env = {
-  port: Number(process.env.PORT) || 4000,
+  port: Number(process.env.PORT) || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
   clientOrigins: (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
     .split(',')

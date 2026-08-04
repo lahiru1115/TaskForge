@@ -4,7 +4,7 @@
 
 | Layer    | Choice |
 |----------|--------|
-| Frontend | React 18 + Vite + TypeScript · Tailwind + shadcn/ui · React Router v6 · TanStack Query · React Hook Form + Zod · Axios |
+| Frontend | React 19 + Vite + TypeScript · Tailwind + shadcn/ui · React Router v7 · TanStack Query · React Hook Form + Zod · Axios |
 | Backend  | Node + Express 5 + TypeScript · Mongoose · JWT (jsonwebtoken) · bcrypt · Zod · helmet · cors · morgan · cookie-parser |
 | Database | MongoDB Atlas |
 
@@ -36,7 +36,7 @@ Role rules live in `controllers/task.controller.ts`:
 ## Features
 
 ### Phase 1 — Core
-- [x] Auth: register, login, logout; JWT stored in an `HttpOnly; SameSite=Strict` cookie (`tf_token`); `GET /api/auth/me`; register auto-logs the user in
+- [x] Auth: register, login, logout; JWT stored in an `HttpOnly` cookie (`tf_token`, `SameSite=Strict` in dev, `SameSite=None; Secure` in production for the cross-site Render↔Vercel split); `GET /api/auth/me`; register auto-logs the user in
 - [x] Role-based visibility: admin sees all tasks; regular users see only tasks they created or are assigned to (enforced at the API, not just the UI)
 - [x] Task CRUD: create, view, edit, delete (title, description, priority, status, due date, assignee)
 - [x] Status workflow: Open → In Progress → Testing → Done
@@ -67,5 +67,5 @@ Role rules live in `controllers/task.controller.ts`:
 ### Deployment
 - [x] Backend → Render
 - [x] Frontend → Vercel
-- [x] Fix `taskforge-frontend/.env.example` port (3000 → 4000)
+- [x] Standardize on port `3000` everywhere (backend default, `.env.example` files, Axios fallback in `src/lib/api.ts:4`)
 - [x] Make GitHub repo public
