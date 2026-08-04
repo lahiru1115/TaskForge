@@ -22,9 +22,7 @@ export interface ITask extends Document {
   createdBy: Types.ObjectId;
   assignedTo: Types.ObjectId | null;
   deletedAt: Date | null;
-  // Optional during the Phase 1 migration window (see docs/SCALING.md) — becomes required once
-  // migrate-001-workspaces.ts has backfilled every existing doc.
-  workspace?: Types.ObjectId;
+  workspace: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,7 +48,7 @@ const taskSchema = new Schema<ITask>(
       index: true,
     },
     deletedAt: { type: Date, default: null, index: true },
-    workspace: { type: Schema.Types.ObjectId, ref: 'Workspace', index: true },
+    workspace: { type: Schema.Types.ObjectId, ref: 'Workspace', required: true, index: true },
   },
   { timestamps: true }
 );

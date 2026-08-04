@@ -106,7 +106,7 @@ Ships first: nothing here touches the data model, and everything downstream need
 Highest-value phase; every later phase is better because this landed first.
 
 - [x] **New models:** `Workspace.ts`, `WorkspaceMember.ts` (shapes above), and `Invite.ts` — `{ workspace, email, role, tokenHash, invitedBy, expiresAt, acceptedAt }`. Token is 32 random bytes; store the **SHA-256 hash**, never the token. TTL index on `expiresAt` (absolute-expiry variant, `expireAfterSeconds: 0`). No `settings` field on `Workspace` yet — the original shape sketch included one, but nothing in any phase defines what it holds, so it's left out until something needs it.
-- [x] **Schema changes:** add `workspace: { type: ObjectId, ref: 'Workspace', index: true }` to `Task.ts`, `Comment.ts`, **and** `Activity.ts` — optional for now, flips to `required: true` after the migration runs (see below). Denormalizing onto Comment/Activity lets you scope-check without loading the parent task.
+- [x] **Schema changes:** `workspace: { type: ObjectId, ref: 'Workspace', required: true, index: true }` on `Task.ts`, `Comment.ts`, **and** `Activity.ts`. Shipped optional first, then flipped to `required: true` once the migration and the rewritten seed script both guaranteed every doc had one — re-ran `npm run seed` and the full test suite after the flip to confirm nothing broke. Denormalizing onto Comment/Activity lets you scope-check without loading the parent task.
 
 **New middleware — `src/middleware/workspace.ts`**
 - [x] `resolveWorkspace`: `params.slug` → loads workspace + caller's active membership → **404s non-members** (never 403 — don't leak workspace existence) → attaches `req.workspace` / `req.membership`. Filters membership on `status: 'active'`, so an `invited`-but-not-yet-accepted row doesn't grant access.
@@ -142,7 +142,11 @@ Verified live against the real dev database (not just the existing smoke tests, 
 
   Wired `preDeployCommand: npm run migrate` into `render.yaml`. Verified live against the real dev database, not just type-checked: first run created the workspace + 4 memberships and backfilled every existing Task/Comment/Activity; a second run correctly no-op'd against the existing stamp.
 
-**Seed rewrite:** two workspaces — "Acme Product" (all four users, varied roles including one `viewer`) and "Side Project" (admin + jane only) — with the 50 tasks split across them and one pending invite. Two workspaces is what makes isolation demo-able in five seconds: log in as john and "Side Project" simply isn't there.
+- [x] **Seed rewrite:** two workspaces — "Acme Product" (all four users: admin=owner, jane=admin, john=member, sarah=**viewer**) and "Side Project" (admin=owner, jane=member only) — plus one pending invite (`mike@taskforge.com`, unaccepted).
+
+  **Deviation from the plan's literal wording, flagged rather than silently reinterpreted:** the plan said "the 50 tasks split across them," but Side Project only has admin+jane as members — splitting the original 50 (many created-by/assigned-to john or sarah) would have meant either reassigning tasks to non-members of Side Project (a data-integrity smell: a task pointing at a `createdBy` with no membership row) or rewriting authors, which would have falsified the task's actual history. Instead: Acme Product keeps the full original 50-task set untouched (zero remapping, every activity/comment link stays exactly as it was), and Side Project gets a new, smaller (12-task), distinctly-themed set ("Recipe Vault," a small side project) authored only by its two real members. Two visually and thematically different workspaces is arguably a *better* demo than the same content split in two.
+
+  Verified live, not just via the smoke tests (which don't touch any of this): re-ran `npm run seed` both before and after the `required: true` flip — both succeeded. Logged in as john and confirmed his workspace list contains **only** Acme Product — Side Project isn't there, and directly requesting `/api/workspaces/side-project` 404s. Logged in as sarah (viewer) and confirmed she's blocked (403 "Viewers cannot create tasks") from creating a task in Acme Product.
 
 **Frontend**
 - [ ] `App.tsx`: routes become `/w/:slug/*` under a new `WorkspaceLayout` that resolves the slug, 404s non-members, and provides context. `/` redirects to last-visited workspace (localStorage) else `/workspaces`.
