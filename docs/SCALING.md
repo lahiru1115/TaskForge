@@ -83,7 +83,7 @@ Ships first: nothing here touches the data model, and everything downstream need
 
 **Real bugs**
 - [x] Standardize on port `3000`: backend default (`config/env.ts`), both `.env`/`.env.example` pairs, and the Axios fallback (`src/lib/api.ts:4`).
-- [ ] Move `taskforge-backend/src/seed.ts` → `src/scripts/seed.ts` (`reset-db.ts` is already there); update `package.json`.
+- [x] Move `taskforge-backend/src/seed.ts` → `src/scripts/seed.ts` (`reset-db.ts` is already there); update `package.json`.
 
 **Infra as code**
 - [ ] `render.yaml` (web service + health check path), `taskforge-frontend/vercel.json` (SPA rewrite so `/tasks/:id` deep links don't 404, plus security headers).

@@ -1,10 +1,10 @@
 import { generateNKeysBetween } from 'fractional-indexing';
-import { connectDB, disconnectDB } from './config/db';
-import { User, hashPassword } from './models/User';
-import { Task, TASK_STATUSES, type TaskStatus, type TaskPriority } from './models/Task';
-import { Activity, type ActivityType } from './models/Activity';
-import { Comment } from './models/Comment';
-import { LoginEvent } from './models/LoginEvent';
+import { connectDB, disconnectDB } from '../config/db';
+import { User, hashPassword } from '../models/User';
+import { Task, TASK_STATUSES, type TaskStatus, type TaskPriority } from '../models/Task';
+import { Activity, type ActivityType } from '../models/Activity';
+import { Comment } from '../models/Comment';
+import { LoginEvent } from '../models/LoginEvent';
 
 const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
