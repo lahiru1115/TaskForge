@@ -16,6 +16,10 @@ export interface IActivity extends Document {
   field?: string;
   from?: string;
   to?: string;
+  // Optional during the Phase 1 migration window (see docs/SCALING.md) — becomes required once
+  // migrate-001-workspaces.ts has backfilled every existing doc. Denormalized from the parent
+  // task so a scope check never has to load it first.
+  workspace?: Types.ObjectId;
   createdAt: Date;
 }
 
@@ -32,6 +36,7 @@ const activitySchema = new Schema<IActivity>(
     field: { type: String },
     from: { type: String },
     to: { type: String },
+    workspace: { type: Schema.Types.ObjectId, ref: 'Workspace', index: true },
   },
   { timestamps: { createdAt: true, updatedAt: false } },
 );

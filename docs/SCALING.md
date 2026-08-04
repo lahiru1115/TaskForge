@@ -105,9 +105,8 @@ Ships first: nothing here touches the data model, and everything downstream need
 
 Highest-value phase; every later phase is better because this landed first.
 
-**New models:** `Workspace.ts`, `WorkspaceMember.ts` (shapes above), and `Invite.ts` — `{ workspace, email, role, tokenHash, invitedBy, expiresAt, acceptedAt }`. Token is 32 random bytes; store the **SHA-256 hash**, never the token. TTL index on `expiresAt`.
-
-**Schema changes:** add `workspace: { type: ObjectId, ref: 'Workspace', required: true, index: true }` to `Task.ts`, `Comment.ts`, **and** `Activity.ts`. Denormalizing onto Comment/Activity lets you scope-check without loading the parent task — call this out in ARCHITECTURE.md as a deliberate denormalization.
+- [x] **New models:** `Workspace.ts`, `WorkspaceMember.ts` (shapes above), and `Invite.ts` — `{ workspace, email, role, tokenHash, invitedBy, expiresAt, acceptedAt }`. Token is 32 random bytes; store the **SHA-256 hash**, never the token. TTL index on `expiresAt` (absolute-expiry variant, `expireAfterSeconds: 0`). No `settings` field on `Workspace` yet — the original shape sketch included one, but nothing in any phase defines what it holds, so it's left out until something needs it.
+- [x] **Schema changes:** add `workspace: { type: ObjectId, ref: 'Workspace', index: true }` to `Task.ts`, `Comment.ts`, **and** `Activity.ts` — optional for now, flips to `required: true` after the migration runs (see below). Denormalizing onto Comment/Activity lets you scope-check without loading the parent task.
 
 **New middleware — `src/middleware/workspace.ts`**
 - [ ] `resolveWorkspace`: `params.slug` → loads workspace + caller's membership → **404s non-members** (never 403 — don't leak workspace existence) → attaches `req.workspace` / `req.membership`.
