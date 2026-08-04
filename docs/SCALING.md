@@ -86,7 +86,7 @@ Ships first: nothing here touches the data model, and everything downstream need
 - [x] Move `taskforge-backend/src/seed.ts` → `src/scripts/seed.ts` (`reset-db.ts` is already there); update `package.json`.
 
 **Infra as code**
-- [ ] `render.yaml` (web service + health check path), `taskforge-frontend/vercel.json` (SPA rewrite so `/tasks/:id` deep links don't 404, plus security headers).
+- [x] `render.yaml` (web service; health check path deferred until the health endpoint lands), `taskforge-frontend/vercel.json` (SPA rewrite so `/tasks/:id` deep links don't 404, plus security headers).
 
 **CI + harness**
 - [ ] `.github/workflows/ci.yml`: backend (typecheck → build → test) and frontend (typecheck → lint → build), npm cache keyed on lockfiles.
