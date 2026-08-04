@@ -13,10 +13,10 @@ Introducing a workspace boundary collapses that `$or` into a single equality on 
 The third gap is that none of this is currently verifiable: zero test files in either package, no `.github/`, no health endpoint, morgan-only logging, no error tracking.
 
 There is also live doc drift that undercuts the repo's credibility:
-- ~~`docs/AWS_DEPLOYMENT.md` describes an EC2+nginx+PM2+Amplify deploy while `docs/PLAN.md:67-68` claims Render+Vercel.~~ **Resolved** — `docs/RENDER_VERCEL_DEPLOYMENT.md` now documents the live Render+Vercel topology and labels the AWS guide as an alternative reference architecture. The AWS doc still references `ecosystem.config.cjs` and `amplify.yml` that don't exist in the tree; commit those or mark them as to-be-created if that path is ever revived.
-- `docs/PLAN.md:7` says React 18 + Router v6; actual is React 19 + Router v7.
-- `docs/PLAN.md:39` says the cookie is `SameSite=Strict`; production sets `none` (`auth.controller.ts:24`).
-- `docs/PLAN.md:70` checks off a `.env.example` port fix that never happened — `taskforge-frontend/.env.example` still says `3000`, **and so does the Axios fallback at `taskforge-frontend/src/lib/api.ts:4`**.
+- [x] `docs/AWS_DEPLOYMENT.md` described an EC2+nginx+PM2+Amplify deploy while `docs/PLAN.md:67-68` claimed Render+Vercel. **Resolved** — `docs/RENDER_VERCEL_DEPLOYMENT.md` now documents the live Render+Vercel topology and labels the AWS guide as an alternative reference architecture. The AWS doc still references `ecosystem.config.cjs` and `amplify.yml` that don't exist in the tree; commit those or mark them as to-be-created if that path is ever revived.
+- [ ] `docs/PLAN.md:7` says React 18 + Router v6; actual is React 19 + Router v7.
+- [ ] `docs/PLAN.md:39` says the cookie is `SameSite=Strict`; production sets `none` (`auth.controller.ts:24`).
+- [ ] `docs/PLAN.md:70` checks off a `.env.example` port fix that never happened — `taskforge-frontend/.env.example` still says `3000`, **and so does the Axios fallback at `taskforge-frontend/src/lib/api.ts:4`**.
 
 **Intended outcome:** six independently shippable phases taking TaskForge from a single-tenant demo to a multi-tenant, real-time, tested, observable application.
 
@@ -68,7 +68,7 @@ Frontend: ~6 tests, **pure logic only** — the fractional-rank computation, the
 
 ### 6. Doc and env cleanup → **Phase 0, non-negotiable**
 
-A reviewer who follows a deployment guide and finds the referenced files missing will discount everything else in the repo. ~30 minutes protecting the credibility of six phases. **Partly done** — see `docs/RENDER_VERCEL_DEPLOYMENT.md`.
+A reviewer who follows a deployment guide and finds the referenced files missing will discount everything else in the repo. ~30 minutes protecting the credibility of six phases. Partly done — see `docs/RENDER_VERCEL_DEPLOYMENT.md` and the Phase 0 checklist below.
 
 ---
 
@@ -77,29 +77,29 @@ A reviewer who follows a deployment guide and finds the referenced files missing
 Ships first: nothing here touches the data model, and everything downstream needs the harness.
 
 **Docs truth-up**
-- ~~Add `docs/RENDER_VERCEL_DEPLOYMENT.md` covering the real Render + Vercel topology, env var tables, and the cross-site cookie/CORS reasoning.~~ **Done.** `docs/AWS_DEPLOYMENT.md` is kept as an alternative reference architecture and cross-linked from it.
-- Fix `docs/PLAN.md`: React 19 / Router v7 (line 7), `SameSite=None` in prod (line 39), uncheck line 70.
-- New `docs/ARCHITECTURE.md` with a mermaid request-flow diagram — this becomes the file you link in applications.
+- [x] Add `docs/RENDER_VERCEL_DEPLOYMENT.md` covering the real Render + Vercel topology, env var tables, and the cross-site cookie/CORS reasoning. `docs/AWS_DEPLOYMENT.md` is kept as an alternative reference architecture and cross-linked from it.
+- [ ] Fix `docs/PLAN.md`: React 19 / Router v7 (line 7), `SameSite=None` in prod (line 39), uncheck line 70.
+- [ ] New `docs/ARCHITECTURE.md` with a mermaid request-flow diagram — this becomes the file you link in applications.
 
 **Real bugs**
-- `taskforge-frontend/.env.example` **and** `taskforge-frontend/src/lib/api.ts:4`: `3000` → `4000`. Fixing only the first leaves the fallback broken whenever `VITE_API_URL` is unset.
-- Move `taskforge-backend/src/seed.ts` → `src/scripts/seed.ts` (`reset-db.ts` is already there); update `package.json`.
+- [ ] `taskforge-frontend/.env.example` **and** `taskforge-frontend/src/lib/api.ts:4`: `3000` → `4000`. Fixing only the first leaves the fallback broken whenever `VITE_API_URL` is unset.
+- [ ] Move `taskforge-backend/src/seed.ts` → `src/scripts/seed.ts` (`reset-db.ts` is already there); update `package.json`.
 
 **Infra as code**
-- `render.yaml` (web service + health check path), `taskforge-frontend/vercel.json` (SPA rewrite so `/tasks/:id` deep links don't 404, plus security headers).
+- [ ] `render.yaml` (web service + health check path), `taskforge-frontend/vercel.json` (SPA rewrite so `/tasks/:id` deep links don't 404, plus security headers).
 
 **CI + harness**
-- `.github/workflows/ci.yml`: backend (typecheck → build → test) and frontend (typecheck → lint → build), npm cache keyed on lockfiles.
-- Add `vitest` + `supertest` + `mongodb-memory-server` (backend), `vitest` + Testing Library (frontend), `vitest.config.ts` in each. **Three smoke tests only** to prove the harness: register→login→me, create→list task, 401 unauthenticated.
-- Add `oxlint` + a `lint` script to the backend — it has no lint script at all today; the frontend already uses oxlint.
+- [ ] `.github/workflows/ci.yml`: backend (typecheck → build → test) and frontend (typecheck → lint → build), npm cache keyed on lockfiles.
+- [ ] Add `vitest` + `supertest` + `mongodb-memory-server` (backend), `vitest` + Testing Library (frontend), `vitest.config.ts` in each. **Three smoke tests only** to prove the harness: register→login→me, create→list task, 401 unauthenticated.
+- [ ] Add `oxlint` + a `lint` script to the backend — it has no lint script at all today; the frontend already uses oxlint.
 
 **Zero-risk runtime wins**
-- `app.ts`: `compression()` before routes — populated task-list JSON compresses ~80%.
-- New `routes/health.routes.ts`: `GET /api/health` (liveness, no DB) and `/api/health/ready` (mongoose `readyState` + ping).
-- `server.ts`: capture `app.listen`'s return; on `SIGTERM` → `server.close()` → `disconnectDB()` → exit, with a 10s force-exit timer. Render sends SIGTERM on every deploy; today in-flight requests are dropped.
-- `config/db.ts`: `maxPoolSize: 10, minPoolSize: 2, serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000`.
-- `models/LoginEvent.ts`: TTL index on `createdAt` (90d) + `{ email:1, createdAt:-1 }`. Zero indexes today on an append-only collection.
-- `task.controller.ts:271-275`: replace the sequential `await task.save()` loop (up to 200 round trips) with `updateMany` + one re-`find` for the populated response — mirroring what `bulkDeleteTasks` already does at `:332`.
+- [ ] `app.ts`: `compression()` before routes — populated task-list JSON compresses ~80%.
+- [ ] New `routes/health.routes.ts`: `GET /api/health` (liveness, no DB) and `/api/health/ready` (mongoose `readyState` + ping).
+- [ ] `server.ts`: capture `app.listen`'s return; on `SIGTERM` → `server.close()` → `disconnectDB()` → exit, with a 10s force-exit timer. Render sends SIGTERM on every deploy; today in-flight requests are dropped.
+- [ ] `config/db.ts`: `maxPoolSize: 10, minPoolSize: 2, serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000`.
+- [ ] `models/LoginEvent.ts`: TTL index on `createdAt` (90d) + `{ email:1, createdAt:-1 }`. Zero indexes today on an append-only collection.
+- [ ] `task.controller.ts:271-275`: replace the sequential `await task.save()` loop (up to 200 round trips) with `updateMany` + one re-`find` for the populated response — mirroring what `bulkDeleteTasks` already does at `:332`.
 
 **Demonstrates:** CI on day one, docs that match the deploy, awareness of SIGTERM and connection pools.
 
@@ -114,17 +114,17 @@ Highest-value phase; every later phase is better because this landed first.
 **Schema changes:** add `workspace: { type: ObjectId, ref: 'Workspace', required: true, index: true }` to `Task.ts`, `Comment.ts`, **and** `Activity.ts`. Denormalizing onto Comment/Activity lets you scope-check without loading the parent task — call this out in ARCHITECTURE.md as a deliberate denormalization.
 
 **New middleware — `src/middleware/workspace.ts`**
-- `resolveWorkspace`: `params.slug` → loads workspace + caller's membership → **404s non-members** (never 403 — don't leak workspace existence) → attaches `req.workspace` / `req.membership`.
-- `requireWorkspaceRole('owner', 'admin')`. Extend `src/types/express.d.ts`.
+- [ ] `resolveWorkspace`: `params.slug` → loads workspace + caller's membership → **404s non-members** (never 403 — don't leak workspace existence) → attaches `req.workspace` / `req.membership`.
+- [ ] `requireWorkspaceRole('owner', 'admin')`. Extend `src/types/express.d.ts`.
 
 **Routing:** new `routes/workspace.routes.ts` (workspace CRUD, `GET/PATCH/DELETE .../members/:userId`, invite create/list/revoke) plus top-level `POST /api/invites/:token/accept`. Nest the existing routes: `router.use('/:slug/tasks', resolveWorkspace, taskRoutes)` with `Router({ mergeParams: true })` in `task.routes.ts` — the task/comment route shapes stay intact. Cut `/api/tasks` outright and note it in a CHANGELOG; this is a portfolio project, not a public API with consumers.
 
 **Authorization rewrite — new `src/services/authz.ts`**
 
 One definition of scope and capability, **deleting the duplicated `visibilityFilter` at `comment.controller.ts:10-13`**. A tenant check living in two files will diverge — this is the most important correctness detail in the phase.
-- `scopeFilter(req)` → `{ workspace: req.workspace._id, deletedAt: null }`; `?mine=true` adds the old `$or` as a UI filter.
-- `canManage` → `membership.role in (owner, admin) || task.createdBy.equals(user._id)`. `member` may patch `status`/`rank` on any task, full-edit only own. `viewer` writes nothing.
-- Task/comment controllers stop reading `user.role` entirely.
+- [ ] `scopeFilter(req)` → `{ workspace: req.workspace._id, deletedAt: null }`; `?mine=true` adds the old `$or` as a UI filter.
+- [ ] `canManage` → `membership.role in (owner, admin) || task.createdBy.equals(user._id)`. `member` may patch `status`/`rank` on any task, full-edit only own. `viewer` writes nothing.
+- [ ] Task/comment controllers stop reading `user.role` entirely.
 
 **Latent bug to fix while here:** `createTask` (`task.controller.ts:142`) computes the next rank via `Task.findOne({ status }).sort({ rank: -1 })` — across the *entire collection*, ignoring `deletedAt`. Today that ranks new tasks against soft-deleted ones; after tenancy it would rank against **other tenants' tasks**. Must become `{ workspace, status, deletedAt: null }`.
 
@@ -145,10 +145,10 @@ Sequence it as: ship `workspace` optional → run migration → flip to `require
 **Seed rewrite:** two workspaces — "Acme Product" (all four users, varied roles including one `viewer`) and "Side Project" (admin + jane only) — with the 50 tasks split across them and one pending invite. Two workspaces is what makes isolation demo-able in five seconds: log in as john and "Side Project" simply isn't there.
 
 **Frontend**
-- `App.tsx`: routes become `/w/:slug/*` under a new `WorkspaceLayout` that resolves the slug, 404s non-members, and provides context. `/` redirects to last-visited workspace (localStorage) else `/workspaces`.
-- New: `context/WorkspaceContext.tsx`, `hooks/useWorkspaces.ts`, `hooks/useMembers.ts`, `pages/Workspaces.tsx`, `pages/settings/Members.tsx`, `pages/AcceptInvite.tsx`, `components/layout/WorkspaceSwitcher.tsx` (Popover + the existing `components/ui/command.tsx`), mounted in `Navbar.tsx`.
-- **Every query key gains the slug**: `['ws', slug, 'tasks', ...]`. Fixes cross-workspace cache bleed and sets up Phase 3's targeted updates.
-- `AuthContext.tsx`: `isAdmin` → `isPlatformAdmin`; component role checks move to `useWorkspaceRole()`.
+- [ ] `App.tsx`: routes become `/w/:slug/*` under a new `WorkspaceLayout` that resolves the slug, 404s non-members, and provides context. `/` redirects to last-visited workspace (localStorage) else `/workspaces`.
+- [ ] New: `context/WorkspaceContext.tsx`, `hooks/useWorkspaces.ts`, `hooks/useMembers.ts`, `pages/Workspaces.tsx`, `pages/settings/Members.tsx`, `pages/AcceptInvite.tsx`, `components/layout/WorkspaceSwitcher.tsx` (Popover + the existing `components/ui/command.tsx`), mounted in `Navbar.tsx`.
+- [ ] **Every query key gains the slug**: `['ws', slug, 'tasks', ...]`. Fixes cross-workspace cache bleed and sets up Phase 3's targeted updates.
+- [ ] `AuthContext.tsx`: `isAdmin` → `isPlatformAdmin`; component role checks move to `useWorkspaceRole()`.
 
 **Demonstrates:** tenant isolation as a structural property; join-collection modeling with the alternatives explicitly rejected; per-tenant RBAC; an idempotent, self-verifying migration wired into the deploy; the judgment to break an API contract deliberately and document it.
 
@@ -159,12 +159,12 @@ Sequence it as: ship `workspace` optional → run migration → flip to `require
 Only possible now, because `workspace` is the leading equality key.
 
 **Indexes — `models/Task.ts`** (drop the current singles and `{status:1, rank:1}`)
-- `{ workspace:1, deletedAt:1, status:1, rank:1 }` — board columns (textbook Equality-Sort-Range ordering)
-- `{ workspace:1, deletedAt:1, createdAt:-1 }` — default list sort
-- `{ workspace:1, deletedAt:1, dueDate:1 }` — calendar + overdue count
-- `{ workspace:1, assignedTo:1, deletedAt:1 }` — assignee filter
-- `{ workspace:1, title:'text', description:'text' }`, weights `{title:10, description:1}`
-- `Comment.ts` / `Activity.ts`: `{ task:1, createdAt:-1 }`
+- [ ] `{ workspace:1, deletedAt:1, status:1, rank:1 }` — board columns (textbook Equality-Sort-Range ordering)
+- [ ] `{ workspace:1, deletedAt:1, createdAt:-1 }` — default list sort
+- [ ] `{ workspace:1, deletedAt:1, dueDate:1 }` — calendar + overdue count
+- [ ] `{ workspace:1, assignedTo:1, deletedAt:1 }` — assignee filter
+- [ ] `{ workspace:1, title:'text', description:'text' }`, weights `{title:10, description:1}`
+- [ ] `Comment.ts` / `Activity.ts`: `{ task:1, createdAt:-1 }`
 
 **The demo artifact — `src/scripts/bench-seed.ts` + `src/scripts/explain.ts`.** `bench-seed` generates 50k tasks across 5 workspaces; `explain` runs the five hot queries with `.explain('executionStats')` and prints stage / `totalDocsExamined` / `nReturned` / `executionTimeMillis`. Put the before/after table in the README: *"COLLSCAN, 48,000 docs examined, 210ms → IXSCAN, 20 examined, 2ms."* Cheap to build, and it turns "I added indexes" into a measured claim you can walk someone through.
 
@@ -183,9 +183,9 @@ Only possible now, because `workspace` is the leading equality key.
 Add an `X-Cache: HIT|MISS` response header — one line, and it makes caching visible in devtools while screen-sharing.
 
 **Hardening**
-- `express-rate-limit` + `rate-limit-redis`: global 300/15min per IP; login/register 10/15min per IP+email; writes 60/min per user. Brute force is currently unmitigated.
-- **CSRF:** production cookie is `SameSite=None` (required for the cross-origin Render↔Vercel split) with **no token defense**. Add `csrf-csrf` (double-submit, stateless — `csurf` is deprecated): backend sets a non-HttpOnly `tf_csrf` cookie on login; the axios interceptor in `lib/api.ts` mirrors it into `X-CSRF-Token` on non-GET. ~40 lines, closes a hole a security-minded reviewer will probe.
-- `auth.validator.ts`: password min 6 → 10 + a small common-password denylist.
+- [ ] `express-rate-limit` + `rate-limit-redis`: global 300/15min per IP; login/register 10/15min per IP+email; writes 60/min per user. Brute force is currently unmitigated.
+- [ ] **CSRF:** production cookie is `SameSite=None` (required for the cross-origin Render↔Vercel split) with **no token defense**. Add `csrf-csrf` (double-submit, stateless — `csurf` is deprecated): backend sets a non-HttpOnly `tf_csrf` cookie on login; the axios interceptor in `lib/api.ts` mirrors it into `X-CSRF-Token` on non-GET. ~40 lines, closes a hole a security-minded reviewer will probe.
+- [ ] `auth.validator.ts`: password min 6 → 10 + a small common-password denylist.
 
 **The full authz matrix test suite lands here** (per decision 5) — the model is now stable enough to pin down.
 
@@ -204,10 +204,10 @@ Rooms `ws:<workspaceId>` and `task:<taskId>`, joined only after **re-checking me
 **Frontend:** `realtime/socket.ts` (singleton, connects on workspace mount, `withCredentials`), `hooks/useRealtime.ts`, and `realtime/applyTaskEvent.ts` — a **pure reducer**, which is exactly what Phase 0's harness unit-tests.
 
 Cache integration, targeted over blanket:
-- `task:updated` → walk `qc.getQueriesData(['ws', slug, 'tasks'])`, patch by `_id` in place; also `setQueryData(['ws', slug, 'task', id], task)`.
-- `task:created|deleted` → `invalidateQueries` on the *list* key only (insertion position depends on server sort + active filters), plus stats.
-- **Echo suppression:** server includes `originSocketId`; the client ignores events matching its own `socket.id`, so optimistic updates aren't double-applied.
-- **On reconnect** → one full `invalidateQueries(['ws', slug])` resync plus a "Reconnecting…" chip in the navbar. Render's spin-down makes this visible, so handling it is a point in your favor rather than a wart.
+- [ ] `task:updated` → walk `qc.getQueriesData(['ws', slug, 'tasks'])`, patch by `_id` in place; also `setQueryData(['ws', slug, 'task', id], task)`.
+- [ ] `task:created|deleted` → `invalidateQueries` on the *list* key only (insertion position depends on server sort + active filters), plus stats.
+- [ ] **Echo suppression:** server includes `originSocketId`; the client ignores events matching its own `socket.id`, so optimistic updates aren't double-applied.
+- [ ] **On reconnect** → one full `invalidateQueries(['ws', slug])` resync plus a "Reconnecting…" chip in the navbar. Render's spin-down makes this visible, so handling it is a point in your favor rather than a wart.
 
 **Collaboration riding on the transport:** `@mentions` in comments (`mentions: [userId]` on `Comment`); a `Notification` model + navbar bell with unread count; task **watchers** (`watchers: [userId]` on `Task`, auto-added on comment or assignment); optional email via **Resend** (`src/lib/mailer.ts`) for invites and mention digests, behind a `RESEND_API_KEY` guard that console-logs in dev.
 
@@ -219,13 +219,13 @@ Cache integration, targeted over blanket:
 
 Independently shippable; produces a measurable before/after.
 
-- **Code splitting:** `App.tsx:5-13` statically imports all 9 pages into one bundle. `React.lazy` behind `<Suspense>` using the existing `Skeleton`; keep Login/Register eager; preload on nav hover in `Navbar.tsx` to kill the perceived split cost.
-- **`vite.config.ts`:** `manualChunks` — `vendor-react`, `vendor-data`, `vendor-dnd` (`@dnd-kit/*`, only `/board`), `vendor-date` (only `/calendar`), `vendor-ui`. Add `rollup-plugin-visualizer` behind `--mode analyze` and `vite-plugin-compression2` for brotli. Bundle table in the README.
-- **Debounce:** new `hooks/useDebouncedValue.ts` (300ms) at `FilterBar.tsx:97-98` and `Board.tsx:52` — today *every keystroke* fires a request, and there is no debounce anywhere in the codebase. Add `placeholderData: keepPreviousData` so the table doesn't flash to skeleton per keystroke.
-- **Memoization:** extract a memoized `TaskRow` from `TaskTable.tsx`; `React.memo` on `BoardCard.tsx` / `BoardColumn.tsx`. The real fix for `KanbanBoard.tsx:79-132` is holding drag placement in a `useRef` and calling `setColumns` only when the target column *or index actually changes* — with memoized cards, a drag re-renders 2 columns instead of 500 cards.
-- **Virtualization:** `@tanstack/react-virtual` — its headless hooks API composes with dnd-kit's `useSortable`, where `react-window`'s component API fights it. Applied **only above ~100 items** so the common case doesn't regress.
-- **Query keys:** new `lib/queryKeys.ts` factory; replace all 7 `invalidateQueries({ queryKey: ['tasks'] })` call sites in `hooks/useTasks.ts` with the narrowest node. Today one comment or one drag nukes every cached page *and* the stats.
-- **`lib/queryClient.ts`:** `gcTime: 5min`, `refetchOnWindowFocus: false` with the comment *"websockets are the freshness mechanism now"*, and `retry: (n, err) => err.status >= 500 && n < 2`.
+- [ ] **Code splitting:** `App.tsx:5-13` statically imports all 9 pages into one bundle. `React.lazy` behind `<Suspense>` using the existing `Skeleton`; keep Login/Register eager; preload on nav hover in `Navbar.tsx` to kill the perceived split cost.
+- [ ] **`vite.config.ts`:** `manualChunks` — `vendor-react`, `vendor-data`, `vendor-dnd` (`@dnd-kit/*`, only `/board`), `vendor-date` (only `/calendar`), `vendor-ui`. Add `rollup-plugin-visualizer` behind `--mode analyze` and `vite-plugin-compression2` for brotli. Bundle table in the README.
+- [ ] **Debounce:** new `hooks/useDebouncedValue.ts` (300ms) at `FilterBar.tsx:97-98` and `Board.tsx:52` — today *every keystroke* fires a request, and there is no debounce anywhere in the codebase. Add `placeholderData: keepPreviousData` so the table doesn't flash to skeleton per keystroke.
+- [ ] **Memoization:** extract a memoized `TaskRow` from `TaskTable.tsx`; `React.memo` on `BoardCard.tsx` / `BoardColumn.tsx`. The real fix for `KanbanBoard.tsx:79-132` is holding drag placement in a `useRef` and calling `setColumns` only when the target column *or index actually changes* — with memoized cards, a drag re-renders 2 columns instead of 500 cards.
+- [ ] **Virtualization:** `@tanstack/react-virtual` — its headless hooks API composes with dnd-kit's `useSortable`, where `react-window`'s component API fights it. Applied **only above ~100 items** so the common case doesn't regress.
+- [ ] **Query keys:** new `lib/queryKeys.ts` factory; replace all 7 `invalidateQueries({ queryKey: ['tasks'] })` call sites in `hooks/useTasks.ts` with the narrowest node. Today one comment or one drag nukes every cached page *and* the stats.
+- [ ] **`lib/queryClient.ts`:** `gcTime: 5min`, `refetchOnWindowFocus: false` with the comment *"websockets are the freshness mechanism now"*, and `retry: (n, err) => err.status >= 500 && n < 2`.
 
 **Demonstrates:** bundle budgeting, render profiling, virtualization, the query-key factory pattern, a measured Lighthouse + bundle-size delta.
 
@@ -235,13 +235,13 @@ Independently shippable; produces a measurable before/after.
 
 Last because it's least visually demo-able — so give it visual hooks anyway.
 
-- **Logging:** `pino` + `pino-http` replacing morgan (`app.ts:22`); `pino-pretty` in dev. Request id → `X-Request-Id`, propagated via `AsyncLocalStorage` so every log line in a request carries it. Redact `cookie` / `authorization`.
-- **Errors:** `@sentry/node` + `@sentry/react`, source maps from CI, `tracesSampleRate: 0.1`, capturing 5xx only in `middleware/error.ts`. Add a frontend `ErrorBoundary` — currently absent, so an unhandled render error today shows a blank white page.
-- **Metrics:** `prom-client` at a token-guarded `GET /metrics` — default Node metrics, an `http_request_duration_seconds` histogram, `taskforge_cache_hits_total`, `taskforge_ws_connections`. **Demo hook:** `docker-compose.observability.yml` with Prometheus + Grafana and a checked-in dashboard JSON, so you can run it locally and screenshot it for the README.
-- **Retention:** TTL on `Notification.createdAt` (30d); `scripts/purge-trash.ts` hard-deleting tasks with `deletedAt < 30d` plus their Activity/Comment, as a Render cron service. Closes the unbounded-growth gap.
-- **Containers:** `taskforge-backend/Dockerfile` (multi-stage → `node:22-alpine`, non-root, `HEALTHCHECK`, `dumb-init` for signal forwarding) + root `docker-compose.yml` (api + mongo + redis). `docker compose up` and the whole thing runs — a large reviewer-experience win for the cost.
-- **CI hardening:** `e2e.yml` running Playwright against compose with trace artifacts; `codeql.yml`; Dependabot; coverage badge.
-- **Backups:** documented `mongodump` script — Atlas M0 has no automated backups, and saying so shows you know your platform's limits.
+- [ ] **Logging:** `pino` + `pino-http` replacing morgan (`app.ts:22`); `pino-pretty` in dev. Request id → `X-Request-Id`, propagated via `AsyncLocalStorage` so every log line in a request carries it. Redact `cookie` / `authorization`.
+- [ ] **Errors:** `@sentry/node` + `@sentry/react`, source maps from CI, `tracesSampleRate: 0.1`, capturing 5xx only in `middleware/error.ts`. Add a frontend `ErrorBoundary` — currently absent, so an unhandled render error today shows a blank white page.
+- [ ] **Metrics:** `prom-client` at a token-guarded `GET /metrics` — default Node metrics, an `http_request_duration_seconds` histogram, `taskforge_cache_hits_total`, `taskforge_ws_connections`. **Demo hook:** `docker-compose.observability.yml` with Prometheus + Grafana and a checked-in dashboard JSON, so you can run it locally and screenshot it for the README.
+- [ ] **Retention:** TTL on `Notification.createdAt` (30d); `scripts/purge-trash.ts` hard-deleting tasks with `deletedAt < 30d` plus their Activity/Comment, as a Render cron service. Closes the unbounded-growth gap.
+- [ ] **Containers:** `taskforge-backend/Dockerfile` (multi-stage → `node:22-alpine`, non-root, `HEALTHCHECK`, `dumb-init` for signal forwarding) + root `docker-compose.yml` (api + mongo + redis). `docker compose up` and the whole thing runs — a large reviewer-experience win for the cost.
+- [ ] **CI hardening:** `e2e.yml` running Playwright against compose with trace artifacts; `codeql.yml`; Dependabot; coverage badge.
+- [ ] **Backups:** documented `mongodump` script — Atlas M0 has no automated backups, and saying so shows you know your platform's limits.
 
 ---
 
