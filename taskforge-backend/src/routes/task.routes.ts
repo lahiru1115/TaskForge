@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validate } from '../middleware/validate';
-import { authenticate } from '../middleware/auth';
 import {
   createTaskSchema,
   updateTaskSchema,
@@ -27,9 +26,10 @@ import {
 import { listComments, addComment, deleteComment } from '../controllers/comment.controller';
 import { addCommentSchema, commentParamsSchema } from '../validators/comment.validator';
 
-const router = Router();
-
-router.use(authenticate);
+// mergeParams: mounted under /:slug/tasks (see workspace.routes.ts) — needs
+// access to the parent's :slug. authenticate + resolveWorkspace already ran
+// there, so this router assumes req.user / req.workspace / req.membership.
+const router = Router({ mergeParams: true });
 
 router.get('/stats', asyncHandler(getTaskStats));
 router.get('/trash', asyncHandler(listTrash));

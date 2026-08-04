@@ -112,18 +112,17 @@ Highest-value phase; every later phase is better because this landed first.
 - [x] `resolveWorkspace`: `params.slug` → loads workspace + caller's active membership → **404s non-members** (never 403 — don't leak workspace existence) → attaches `req.workspace` / `req.membership`. Filters membership on `status: 'active'`, so an `invited`-but-not-yet-accepted row doesn't grant access.
 - [x] `requireWorkspaceRole('owner', 'admin')`. Extended `src/types/express.d.ts` with `req.workspace` / `req.membership`. Not wired into any routes yet — that lands with the routing rewrite.
 
-**Routing:** new `routes/workspace.routes.ts` (workspace CRUD, `GET/PATCH/DELETE .../members/:userId`, invite create/list/revoke) plus top-level `POST /api/invites/:token/accept`. Nest the existing routes: `router.use('/:slug/tasks', resolveWorkspace, taskRoutes)` with `Router({ mergeParams: true })` in `task.routes.ts` — the task/comment route shapes stay intact. Cut `/api/tasks` outright and note it in a CHANGELOG; this is a portfolio project, not a public API with consumers.
+**Routing + authorization rewrite — split into two parts; Part A done, Part B not started.**
 
-**Authorization rewrite — new `src/services/authz.ts`**
+**Part A — task/comment routes, done:**
+- [x] Nested the task/comment surface: `router.use('/:slug/tasks', resolveWorkspace, taskRoutes)` in the new `workspace.routes.ts`, `Router({ mergeParams: true })` in `task.routes.ts`, mounted at `app.use('/api/workspaces', workspaceRoutes)`. `/api/tasks` is gone — no shim, no deprecation period; this is a portfolio project; not a public API with consumers.
+- [x] `scopeFilter(req)`, `canView`, `canManage`, `canWrite` in `src/services/authz.ts`, wired into every `task.controller.ts` and `comment.controller.ts` function. Deleted the duplicated `visibilityFilter` from `comment.controller.ts` — one definition of scope now, not two.
+- [x] Every write path stamps `workspace: req.workspace._id` — `createTask`, `addComment`, and both `Activity` write sites (single `create` and the `insertMany` batches in `updateTask`/`bulkUpdateTasks`).
+- [x] Judgment calls made while wiring this in, none explicitly spelled out in the original plan: `createTask` and `addComment` now reject `viewer`s outright (`canWrite`) — "viewer writes nothing" is a blanket statement, and creating new content is a write. `bulkUpdateTasks`' status-only path also gates on `canWrite` — the old code had no permission check at all on bulk status changes, which was arguably already a gap.
+- [x] **Latent bug fixed:** `createTask`'s rank lookup (`task.controller.ts:142`) was `Task.findOne({ status })`, scanning the *entire collection* regardless of tenant. Now `Task.findOne({ workspace, status, deletedAt: null })`.
+- [x] Smoke tests updated to the new nested shape (creating a workspace directly via the models, since workspace-creation endpoints don't exist yet). Verified live against the real dev database too, not just the test suite: real workspace access works, a non-existent slug 404s (not 403 — confirmed no existence leak), and no-cookie requests 401.
 
-One definition of scope and capability, **deleting the duplicated `visibilityFilter` at `comment.controller.ts:10-13`**. A tenant check living in two files will diverge — this is the most important correctness detail in the phase.
-- [x] `scopeFilter(req)` → `{ workspace: req.workspace._id, deletedAt: null }`; `?mine=true` adds the old `$or` as a UI filter. Written in `src/services/authz.ts`, not wired in yet.
-- [x] `canManage` → `membership.role in (owner, admin) || task.createdBy.equals(user._id)`. Also added `canView` (task's `workspace` matches `req.workspace`) and `canPatchStatusRank` (`owner`/`admin`/`member`, not `viewer`) — the concrete implementation of "member may patch status/rank on any task, full-edit only own; viewer writes nothing," which the plan described but didn't name as functions.
-- [ ] Task/comment controllers stop reading `user.role` entirely. Lands with the routing/controller rewrite below — `authz.ts` exists but nothing calls it yet.
-
-**Latent bug to fix while here:** `createTask` (`task.controller.ts:142`) computes the next rank via `Task.findOne({ status }).sort({ rank: -1 })` — across the *entire collection*, ignoring `deletedAt`. Today that ranks new tasks against soft-deleted ones; after tenancy it would rank against **other tenants' tasks**. Must become `{ workspace, status, deletedAt: null }`.
-
-**Fix `listUsers`:** `user.controller.ts:7-10` returns every user in the database to any authenticated caller. Replace with `GET /api/workspaces/:slug/members` — paginated, `?q=` prefix search, co-members only. Delete the global endpoint; `hooks/useUsers.ts` → `hooks/useMembers.ts`.
+**Part B — not started:** `routes/workspace.routes.ts` gains workspace CRUD, `GET/PATCH/DELETE .../members/:userId`, invite create/list/revoke, plus top-level `POST /api/invites/:token/accept`. This is also where `listUsers` (`user.controller.ts:7-10`, returns every user in the database to any authenticated caller) gets replaced with `GET /api/workspaces/:slug/members` — paginated, `?q=` prefix search, co-members only.
 
 - [x] **Migration — `src/scripts/migrate-001-workspaces.ts`** (`npm run migrate`). Idempotent, stamped in a `Migration` model (`{name, appliedAt}`, unique on `name`):
   1. Check stamp; exit if already applied.

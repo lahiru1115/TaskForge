@@ -37,11 +37,11 @@ export function canManage(task: ITask, req: Request): boolean {
 }
 
 /**
- * Members (not viewers) may move any task's status/rank even without full
- * manage rights — that's what makes a shared Kanban board shared. Viewers
- * never get write access of any kind.
+ * Any write action at all — create a task, add a comment, or (without full
+ * manage rights) move an existing task's status/rank. `viewer` is the only
+ * role this excludes; everyone else in the workspace can write.
  */
-export function canPatchStatusRank(req: Request): boolean {
+export function canWrite(req: Request): boolean {
   const role = req.membership!.role;
   return role === 'owner' || role === 'admin' || role === 'member';
 }

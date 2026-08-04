@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { generateKeyBetween } from 'fractional-indexing';
 import { Task, ITask, TASK_STATUSES, TaskPriority, TaskStatus } from '../models/Task';
-import { Activity } from '../models/Activity';
+import { Activity, ActivityType } from '../models/Activity';
 import { Comment } from '../models/Comment';
 import { ApiError } from '../utils/ApiError';
-import { IUser } from '../models/User';
+import { scopeFilter, canView, canManage, canWrite, ScopeFilter } from '../services/authz';
 import {
   CreateTaskInput,
   UpdateTaskInput,
@@ -15,31 +16,28 @@ import {
 
 type ValidatedReq = Request & { validatedQuery: unknown };
 
-type TaskFilter = Record<string, unknown>;
+type TaskFilter = ScopeFilter;
 
-function visibilityFilter(user: IUser): TaskFilter {
-  const base = user.role === 'admin' ? {} : { $or: [{ createdBy: user._id }, { assignedTo: user._id }] };
-  return { ...base, deletedAt: null };
-}
+// A plain object shape for a not-yet-inserted Activity doc. Deliberately not
+// `Parameters<typeof Activity.create>[0]` — spreading that Mongoose-inferred
+// type to add `workspace` blows up tsc with "type instantiation is excessively
+// deep" (TS2589).
+type ActivityDraft = {
+  task: Types.ObjectId;
+  actor: Types.ObjectId;
+  actorName: string;
+  type: ActivityType;
+  field?: string;
+  from?: string;
+  to?: string;
+};
 
-function trashVisibilityFilter(user: IUser): TaskFilter {
-  const base = user.role === 'admin' ? {} : { createdBy: user._id };
-  return { ...base, deletedAt: { $ne: null } };
-}
-
-function canView(task: ITask, user: IUser): boolean {
-  const id = user._id.toString();
-  return (
-    user.role === 'admin' ||
-    task.createdBy.toString() === id ||
-    (task.assignedTo != null && task.assignedTo.toString() === id)
-  );
-}
-
-function canManage(task: ITask, user: IUser): boolean {
-  return (
-    user.role === 'admin' || task.createdBy.toString() === user._id.toString()
-  );
+// Trash keeps the old asymmetry: workspace admins/owners see every soft-deleted
+// task, everyone else sees only the ones they created themselves.
+function trashScopeFilter(req: Request): TaskFilter {
+  const role = req.membership!.role;
+  const base = role === 'owner' || role === 'admin' ? {} : { createdBy: req.user!._id };
+  return { workspace: req.workspace!._id, ...base, deletedAt: { $ne: null } };
 }
 
 const SORT_MAP: Record<string, Record<string, 1 | -1>> = {
@@ -53,9 +51,8 @@ const SORT_MAP: Record<string, Record<string, 1 | -1>> = {
 
 export async function listTasks(req: Request, res: Response) {
   const q = (req as ValidatedReq).validatedQuery as ListTasksQuery;
-  const user = req.user!;
 
-  const filter: TaskFilter = { ...visibilityFilter(user) };
+  const filter: TaskFilter = { ...scopeFilter(req, { mine: q.mine }) };
 
   if (q.search) {
     filter.title = { $regex: q.search, $options: 'i' };
@@ -91,9 +88,7 @@ export async function listTasks(req: Request, res: Response) {
 }
 
 export async function listTrash(req: Request, res: Response) {
-  const user = req.user!;
-
-  const tasks = await Task.find(trashVisibilityFilter(user))
+  const tasks = await Task.find(trashScopeFilter(req))
     .sort({ deletedAt: -1 })
     .limit(200)
     .populate('createdBy', 'name email')
@@ -103,8 +98,7 @@ export async function listTrash(req: Request, res: Response) {
 }
 
 export async function getTaskStats(req: Request, res: Response) {
-  const user = req.user!;
-  const filter = visibilityFilter(user);
+  const filter = scopeFilter(req);
   const now = new Date();
 
   const [byStatus, byPriority, overdueCount] = await Promise.all([
@@ -137,9 +131,14 @@ export async function getTaskStats(req: Request, res: Response) {
 }
 
 export async function createTask(req: Request, res: Response) {
+  if (!canWrite(req)) throw ApiError.forbidden('Viewers cannot create tasks');
+
   const body = req.body as CreateTaskInput;
   const status = (body.status as TaskStatus | undefined) ?? 'open';
-  const lastRanked = await Task.findOne({ status }).sort({ rank: -1 }).select('rank').lean();
+  const lastRanked = await Task.findOne({ workspace: req.workspace!._id, status, deletedAt: null })
+    .sort({ rank: -1 })
+    .select('rank')
+    .lean();
   const rank = generateKeyBetween(lastRanked?.rank ?? null, null);
   const doc = {
     title: body.title,
@@ -149,6 +148,7 @@ export async function createTask(req: Request, res: Response) {
     dueDate: body.dueDate,
     assignedTo: body.assignedTo ?? null,
     createdBy: req.user!._id,
+    workspace: req.workspace!._id,
     rank,
   };
   const task = await Task.create(doc);
@@ -159,6 +159,7 @@ export async function createTask(req: Request, res: Response) {
 
   await Activity.create({
     task: task._id,
+    workspace: req.workspace!._id,
     actor: req.user!._id,
     actorName: req.user!.name,
     type: 'created',
@@ -171,7 +172,7 @@ export async function getTask(req: Request, res: Response) {
   const { id } = req.params;
   const task = await Task.findById(id);
 
-  if (!task || task.deletedAt || !canView(task, req.user!)) throw ApiError.notFound('Task not found');
+  if (!task || task.deletedAt || !canView(task, req)) throw ApiError.notFound('Task not found');
 
   await task.populate([
     { path: 'createdBy', select: 'name email' },
@@ -184,12 +185,12 @@ export async function getTask(req: Request, res: Response) {
 export async function updateTask(req: Request, res: Response) {
   const { id } = req.params;
   const body = req.body as UpdateTaskInput;
-  const user = req.user!;
 
   const task = await Task.findById(id);
-  if (!task || task.deletedAt || !canView(task, user)) throw ApiError.notFound('Task not found');
+  if (!task || task.deletedAt || !canView(task, req)) throw ApiError.notFound('Task not found');
 
-  if (!canManage(task, user)) {
+  if (!canManage(task, req)) {
+    if (!canWrite(req)) throw ApiError.forbidden('Insufficient permissions');
     const keys = Object.keys(body);
     if (keys.some((k) => k !== 'status' && k !== 'rank')) {
       throw ApiError.forbidden('You may only update the status of this task');
@@ -215,7 +216,7 @@ export async function updateTask(req: Request, res: Response) {
   // Append activity records for each meaningful change (rank excluded)
   const actorId = req.user!._id;
   const actorName = req.user!.name;
-  const acts: Parameters<typeof Activity.create>[0][] = [];
+  const acts: ActivityDraft[] = [];
 
   if (body.status && body.status !== oldStatus) {
     acts.push({ task: task._id, actor: actorId, actorName, type: 'status_changed', from: oldStatus, to: body.status });
@@ -247,7 +248,9 @@ export async function updateTask(req: Request, res: Response) {
     }
   }
 
-  if (acts.length > 0) await Activity.insertMany(acts);
+  if (acts.length > 0) {
+    await Activity.insertMany(acts.map((a) => ({ ...a, workspace: req.workspace!._id })));
+  }
 
   res.json({ task });
 }
@@ -256,11 +259,14 @@ export async function bulkUpdateTasks(req: Request, res: Response) {
   const { ids, status, assignedTo } = req.body as BulkUpdateInput;
   const user = req.user!;
 
-  const tasks = await Task.find({ _id: { $in: ids }, ...visibilityFilter(user) });
+  const tasks = await Task.find({ _id: { $in: ids }, ...scopeFilter(req) });
   if (tasks.length !== ids.length) throw ApiError.notFound('One or more tasks not found');
 
+  if (status && !canWrite(req)) {
+    throw ApiError.forbidden('Insufficient permissions');
+  }
   const changesAssignee = assignedTo !== undefined;
-  if (changesAssignee && tasks.some((t) => !canManage(t, user))) {
+  if (changesAssignee && tasks.some((t) => !canManage(t, req))) {
     throw ApiError.forbidden('You may only reassign tasks you created');
   }
 
@@ -281,7 +287,7 @@ export async function bulkUpdateTasks(req: Request, res: Response) {
 
   const actorId = user._id;
   const actorName = user.name;
-  const acts: Parameters<typeof Activity.create>[0][] = [];
+  const acts: ActivityDraft[] = [];
 
   for (const task of updatedTasks) {
     const old = oldValues.get(task._id.toString())!;
@@ -301,18 +307,19 @@ export async function bulkUpdateTasks(req: Request, res: Response) {
     }
   }
 
-  if (acts.length > 0) await Activity.insertMany(acts);
+  if (acts.length > 0) {
+    await Activity.insertMany(acts.map((a) => ({ ...a, workspace: req.workspace!._id })));
+  }
 
   res.json({ tasks: updatedTasks });
 }
 
 export async function deleteTask(req: Request, res: Response) {
   const { id } = req.params;
-  const user = req.user!;
 
   const task = await Task.findById(id);
-  if (!task || task.deletedAt || !canView(task, user)) throw ApiError.notFound('Task not found');
-  if (!canManage(task, user)) throw ApiError.forbidden('Insufficient permissions');
+  if (!task || task.deletedAt || !canView(task, req)) throw ApiError.notFound('Task not found');
+  if (!canManage(task, req)) throw ApiError.forbidden('Insufficient permissions');
 
   task.deletedAt = new Date();
   await task.save();
@@ -321,11 +328,10 @@ export async function deleteTask(req: Request, res: Response) {
 
 export async function bulkDeleteTasks(req: Request, res: Response) {
   const { ids } = req.body as BulkIdsInput;
-  const user = req.user!;
 
-  const tasks = await Task.find({ _id: { $in: ids }, ...visibilityFilter(user) });
+  const tasks = await Task.find({ _id: { $in: ids }, ...scopeFilter(req) });
   if (tasks.length !== ids.length) throw ApiError.notFound('One or more tasks not found');
-  if (tasks.some((t) => !canManage(t, user))) {
+  if (tasks.some((t) => !canManage(t, req))) {
     throw ApiError.forbidden('You may only delete tasks you created');
   }
 
@@ -336,11 +342,10 @@ export async function bulkDeleteTasks(req: Request, res: Response) {
 
 export async function restoreTask(req: Request, res: Response) {
   const { id } = req.params;
-  const user = req.user!;
 
   const task = await Task.findById(id);
-  if (!task || !task.deletedAt || !canView(task, user)) throw ApiError.notFound('Task not found');
-  if (!canManage(task, user)) throw ApiError.forbidden('Insufficient permissions');
+  if (!task || !task.deletedAt || !canView(task, req)) throw ApiError.notFound('Task not found');
+  if (!canManage(task, req)) throw ApiError.forbidden('Insufficient permissions');
 
   task.deletedAt = null;
   await task.save();
@@ -354,11 +359,10 @@ export async function restoreTask(req: Request, res: Response) {
 
 export async function permanentlyDeleteTask(req: Request, res: Response) {
   const { id } = req.params;
-  const user = req.user!;
 
   const task = await Task.findById(id);
-  if (!task || !task.deletedAt || !canView(task, user)) throw ApiError.notFound('Task not found');
-  if (!canManage(task, user)) throw ApiError.forbidden('Insufficient permissions');
+  if (!task || !task.deletedAt || !canView(task, req)) throw ApiError.notFound('Task not found');
+  if (!canManage(task, req)) throw ApiError.forbidden('Insufficient permissions');
 
   await Promise.all([
     Activity.deleteMany({ task: task._id }),
@@ -371,10 +375,9 @@ export async function permanentlyDeleteTask(req: Request, res: Response) {
 
 export async function getTaskActivity(req: Request, res: Response) {
   const { id } = req.params;
-  const user = req.user!;
 
   const task = await Task.findById(id).lean();
-  if (!task || (task as unknown as ITask).deletedAt || !canView(task as unknown as ITask, user)) {
+  if (!task || (task as unknown as ITask).deletedAt || !canView(task as unknown as ITask, req)) {
     throw ApiError.notFound('Task not found');
   }
 

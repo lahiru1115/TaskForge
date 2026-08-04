@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import app from '../src/app';
+import { Workspace } from '../src/models/Workspace';
+import { WorkspaceMember } from '../src/models/WorkspaceMember';
 
 let mongod: MongoMemoryServer;
 
@@ -43,21 +45,37 @@ describe('auth smoke: register -> login -> me', () => {
   });
 });
 
-describe('task smoke: create -> list', () => {
+describe('task smoke: create -> list (workspace-scoped)', () => {
   const email = 'smoke-task@taskforge.test';
   const password = 'password123';
   let cookie: string;
+  let slug: string;
 
   beforeAll(async () => {
     const res = await request
       .post('/api/auth/register')
       .send({ name: 'Task Smoke', email, password });
     cookie = res.headers['set-cookie'];
+
+    // Workspace CRUD doesn't exist yet (lands separately) — create one
+    // directly so the workspace-scoped task routes have something to resolve.
+    const workspace = await Workspace.create({
+      name: 'Smoke Workspace',
+      slug: 'smoke-workspace',
+      owner: res.body.user._id,
+    });
+    await WorkspaceMember.create({
+      workspace: workspace._id,
+      user: res.body.user._id,
+      role: 'owner',
+      status: 'active',
+    });
+    slug = workspace.slug;
   });
 
   it('creates a task', async () => {
     const res = await request
-      .post('/api/tasks')
+      .post(`/api/workspaces/${slug}/tasks`)
       .set('Cookie', cookie)
       .send({ title: 'Smoke test task' });
 
@@ -66,7 +84,7 @@ describe('task smoke: create -> list', () => {
   });
 
   it('lists the created task', async () => {
-    const res = await request.get('/api/tasks').set('Cookie', cookie);
+    const res = await request.get(`/api/workspaces/${slug}/tasks`).set('Cookie', cookie);
     expect(res.status).toBe(200);
     expect(res.body.tasks.some((t: { title: string }) => t.title === 'Smoke test task')).toBe(true);
   });
@@ -74,7 +92,7 @@ describe('task smoke: create -> list', () => {
 
 describe('unauthenticated access', () => {
   it('returns 401 for a protected route with no cookie', async () => {
-    const res = await request.get('/api/tasks');
+    const res = await request.get('/api/workspaces/anything/tasks');
     expect(res.status).toBe(401);
   });
 });
