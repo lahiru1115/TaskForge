@@ -3,6 +3,7 @@ import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { useUpdateTask } from '@/hooks/useTasks'
 import type { Task } from '@/hooks/useTasks'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import type { TaskInput } from '@/lib/schemas'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,8 +26,9 @@ function toDateInput(iso: string | undefined) {
 }
 
 export default function EditTaskDialog({ task, canManage }: EditTaskDialogProps) {
+  const { slug } = useCurrentWorkspace()
   const [open, setOpen] = useState(false)
-  const update = useUpdateTask(task._id)
+  const update = useUpdateTask(slug, task._id)
 
   const defaultFormValues: Partial<TaskInput> = {
     title: task.title,

@@ -165,7 +165,7 @@ const PRIORITY_CARDS = [
 export default function DashboardPage() {
   const { user } = useAuth()
   const { slug } = useCurrentWorkspace()
-  const { data: stats, isLoading, isError } = useTaskStats()
+  const { data: stats, isLoading, isError } = useTaskStats(slug)
 
   return (
     <div className="grid gap-8">

@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { LayoutList, Search, X } from 'lucide-react'
 import { useTasks, type TaskFilters } from '@/hooks/useTasks'
-import { useUsers } from '@/hooks/useUsers'
+import { useMembers } from '@/hooks/useMembers'
 import { useAuth } from '@/context/AuthContext'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import KanbanBoard from '@/components/board/KanbanBoard'
 import CreateTaskDialog from '@/components/task/CreateTaskDialog'
 import { FilterSelect } from '@/components/task/FilterBar'
@@ -25,9 +26,11 @@ function hasActiveFilters(f: TaskFilters) {
 export default function BoardPage() {
   const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS)
   const { isAdmin } = useAuth()
-  const { data: users = [] } = useUsers()
+  const { slug } = useCurrentWorkspace()
+  const { data: membersData } = useMembers(slug, { limit: 100 })
+  const users = (membersData?.members ?? []).map((m) => m.user)
 
-  const { data: response, isLoading, isError } = useTasks({ ...filters, limit: 500 })
+  const { data: response, isLoading, isError } = useTasks(slug, { ...filters, limit: 500 })
   const tasks = response?.tasks ?? []
 
   function set(key: keyof TaskFilters, value: string) {

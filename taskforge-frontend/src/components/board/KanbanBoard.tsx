@@ -18,6 +18,7 @@ import { generateKeyBetween } from 'fractional-indexing'
 import { toast } from 'sonner'
 import { useMoveTask } from '@/hooks/useTasks'
 import type { Task } from '@/hooks/useTasks'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import BoardColumn, { COLUMN_CONFIG } from './BoardColumn'
 import BoardCard from './BoardCard'
 
@@ -53,9 +54,10 @@ interface KanbanBoardProps {
 }
 
 export default function KanbanBoard({ tasks }: KanbanBoardProps) {
+  const { slug } = useCurrentWorkspace()
   const [columns, setColumns] = useState<Columns>(() => buildColumns(tasks))
   const [activeTask, setActiveTask] = useState<Task | null>(null)
-  const move = useMoveTask()
+  const move = useMoveTask(slug)
 
   // Sync columns only when server data changes — NOT when activeTask changes.
   // Reacting to activeTask would rebuild from stale tasks right after a drop

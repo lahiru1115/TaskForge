@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/context/AuthContext'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { useTaskComments, useAddComment, useDeleteComment } from '@/hooks/useComments'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -41,9 +42,10 @@ function avatarColor(name: string) {
 
 export default function CommentSection({ taskId }: { taskId: string }) {
   const { user, isAdmin } = useAuth()
-  const { data: comments, isLoading } = useTaskComments(taskId)
-  const addComment = useAddComment(taskId)
-  const deleteComment = useDeleteComment(taskId)
+  const { slug } = useCurrentWorkspace()
+  const { data: comments, isLoading } = useTaskComments(slug, taskId)
+  const addComment = useAddComment(slug, taskId)
+  const deleteComment = useDeleteComment(slug, taskId)
 
   const [body, setBody] = useState('')
   const [confirmingId, setConfirmingId] = useState<string | null>(null)

@@ -1,5 +1,6 @@
 import { GitCommitVertical, Plus, ArrowRight, Tag, User, Pencil } from 'lucide-react'
 import { useTaskActivity, type Activity, type ActivityType } from '@/hooks/useActivity'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -126,7 +127,8 @@ function ActivityItem({ activity, isLast }: { activity: Activity; isLast: boolea
 }
 
 export default function ActivityFeed({ taskId }: { taskId: string }) {
-  const { data: activities, isLoading } = useTaskActivity(taskId)
+  const { slug } = useCurrentWorkspace()
+  const { data: activities, isLoading } = useTaskActivity(slug, taskId)
 
   if (isLoading) {
     return (

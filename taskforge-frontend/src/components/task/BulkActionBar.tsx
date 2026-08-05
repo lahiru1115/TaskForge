@@ -15,7 +15,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useAuth } from '@/context/AuthContext'
-import { useUsers } from '@/hooks/useUsers'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
+import { useMembers } from '@/hooks/useMembers'
 import { useBulkUpdateTasks, useBulkDeleteTasks, useRestoreTask } from '@/hooks/useTasks'
 import type { Task } from '@/hooks/useTasks'
 
@@ -39,10 +40,12 @@ interface BulkActionBarProps {
 
 export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
   const { user, isAdmin } = useAuth()
-  const { data: users = [] } = useUsers()
-  const bulkUpdate = useBulkUpdateTasks()
-  const bulkDelete = useBulkDeleteTasks()
-  const restore = useRestoreTask()
+  const { slug } = useCurrentWorkspace()
+  const { data: membersData } = useMembers(slug, { limit: 100 })
+  const users = (membersData?.members ?? []).map((m) => m.user)
+  const bulkUpdate = useBulkUpdateTasks(slug)
+  const bulkDelete = useBulkDeleteTasks(slug)
+  const restore = useRestoreTask(slug)
 
   const [pendingStatus, setPendingStatus] = useState('')
   const [pendingAssignee, setPendingAssignee] = useState('')

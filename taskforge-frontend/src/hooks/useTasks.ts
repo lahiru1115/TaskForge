@@ -45,63 +45,64 @@ export interface TasksResponse {
   pagination: PaginationData
 }
 
-export function useTasks(filters: TaskFilters = {}) {
+export function useTasks(slug: string, filters: TaskFilters = {}) {
   return useQuery<TasksResponse>({
-    queryKey: ['tasks', filters],
+    queryKey: ['ws', slug, 'tasks', filters],
     queryFn: async () => {
       const params = Object.fromEntries(
         Object.entries(filters).filter(([, v]) => v !== '' && v !== undefined),
       )
-      const { data } = await api.get('/api/tasks', { params })
+      const { data } = await api.get(`/api/workspaces/${slug}/tasks`, { params })
       return data
     },
+    enabled: !!slug,
   })
 }
 
-export function useTask(id: string) {
+export function useTask(slug: string, id: string) {
   return useQuery<Task>({
-    queryKey: ['tasks', id],
+    queryKey: ['ws', slug, 'tasks', id],
     queryFn: async () => {
-      const { data } = await api.get(`/api/tasks/${id}`)
+      const { data } = await api.get(`/api/workspaces/${slug}/tasks/${id}`)
       return data.task
     },
-    enabled: !!id,
+    enabled: !!slug && !!id,
   })
 }
 
-export function useCreateTask() {
+export function useCreateTask(slug: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (body: TaskInput) => {
-      const { data } = await api.post('/api/tasks', body)
+      const { data } = await api.post(`/api/workspaces/${slug}/tasks`, body)
       return data.task as Task
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['ws', slug, 'tasks'] }),
   })
 }
 
-export function useUpdateTask(id: string) {
+export function useUpdateTask(slug: string, id: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (body: Partial<TaskInput>) => {
-      const { data } = await api.patch(`/api/tasks/${id}`, body)
+      const { data } = await api.patch(`/api/workspaces/${slug}/tasks/${id}`, body)
       return data.task as Task
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['tasks'] })
-      qc.invalidateQueries({ queryKey: ['activity', id] })
+      qc.invalidateQueries({ queryKey: ['ws', slug, 'tasks'] })
+      qc.invalidateQueries({ queryKey: ['ws', slug, 'activity', id] })
     },
   })
 }
 
-export function useDeleteTask() {
+export function useDeleteTask(slug: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/api/tasks/${id}`)
+      await api.delete(`/api/workspaces/${slug}/tasks/${id}`)
       return id
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['ws', slug, 'tasks'] }),
   })
 }
 
@@ -113,18 +114,18 @@ export interface BulkUpdatePayload {
   assignedToUser?: TaskUser | null
 }
 
-export function useBulkUpdateTasks() {
+export function useBulkUpdateTasks(slug: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ assignedToUser: _assignedToUser, ...body }: BulkUpdatePayload) => {
-      const { data } = await api.patch('/api/tasks/bulk', body)
+      const { data } = await api.patch(`/api/workspaces/${slug}/tasks/bulk`, body)
       return data.tasks as Task[]
     },
     onMutate: async ({ ids, status, assignedTo, assignedToUser }) => {
-      await qc.cancelQueries({ queryKey: ['tasks'] })
-      const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['tasks'] })
+      await qc.cancelQueries({ queryKey: ['ws', slug, 'tasks'] })
+      const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['ws', slug, 'tasks'] })
       const idSet = new Set(ids)
-      qc.setQueriesData<TasksResponse>({ queryKey: ['tasks'] }, (old) => {
+      qc.setQueriesData<TasksResponse>({ queryKey: ['ws', slug, 'tasks'] }, (old) => {
         if (!old?.tasks) return old
         return {
           ...old,
@@ -148,22 +149,22 @@ export function useBulkUpdateTasks() {
         }
       }
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['ws', slug, 'tasks'] }),
   })
 }
 
-export function useBulkDeleteTasks() {
+export function useBulkDeleteTasks(slug: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (ids: string[]) => {
-      await api.delete('/api/tasks/bulk', { data: { ids } })
+      await api.delete(`/api/workspaces/${slug}/tasks/bulk`, { data: { ids } })
       return ids
     },
     onMutate: async (ids) => {
-      await qc.cancelQueries({ queryKey: ['tasks'] })
-      const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['tasks'] })
+      await qc.cancelQueries({ queryKey: ['ws', slug, 'tasks'] })
+      const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['ws', slug, 'tasks'] })
       const idSet = new Set(ids)
-      qc.setQueriesData<TasksResponse>({ queryKey: ['tasks'] }, (old) => {
+      qc.setQueriesData<TasksResponse>({ queryKey: ['ws', slug, 'tasks'] }, (old) => {
         if (!old?.tasks) return old
         return {
           ...old,
@@ -181,22 +182,22 @@ export function useBulkDeleteTasks() {
       }
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ['tasks'] })
-      qc.invalidateQueries({ queryKey: ['trash'] })
+      qc.invalidateQueries({ queryKey: ['ws', slug, 'tasks'] })
+      qc.invalidateQueries({ queryKey: ['ws', slug, 'trash'] })
     },
   })
 }
 
-export function useRestoreTask() {
+export function useRestoreTask(slug: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { data } = await api.post(`/api/tasks/${id}/restore`)
+      const { data } = await api.post(`/api/workspaces/${slug}/tasks/${id}/restore`)
       return data.task as Task
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['tasks'] })
-      qc.invalidateQueries({ queryKey: ['trash'] })
+      qc.invalidateQueries({ queryKey: ['ws', slug, 'tasks'] })
+      qc.invalidateQueries({ queryKey: ['ws', slug, 'trash'] })
     },
   })
 }
@@ -205,38 +206,39 @@ export interface TrashResponse {
   tasks: Task[]
 }
 
-export function useTrash() {
+export function useTrash(slug: string) {
   return useQuery<TrashResponse>({
-    queryKey: ['trash'],
+    queryKey: ['ws', slug, 'trash'],
     queryFn: async () => {
-      const { data } = await api.get('/api/tasks/trash')
+      const { data } = await api.get(`/api/workspaces/${slug}/tasks/trash`)
       return data
     },
+    enabled: !!slug,
   })
 }
 
-export function usePermanentlyDeleteTask() {
+export function usePermanentlyDeleteTask(slug: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/api/tasks/${id}/permanent`)
+      await api.delete(`/api/workspaces/${slug}/tasks/${id}/permanent`)
       return id
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trash'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['ws', slug, 'trash'] }),
   })
 }
 
-export function useMoveTask() {
+export function useMoveTask(slug: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, status, rank }: { id: string; status: Task['status']; rank: string }) => {
-      const { data } = await api.patch(`/api/tasks/${id}`, { status, rank })
+      const { data } = await api.patch(`/api/workspaces/${slug}/tasks/${id}`, { status, rank })
       return data.task as Task
     },
     onMutate: async ({ id, status, rank }) => {
-      await qc.cancelQueries({ queryKey: ['tasks'] })
-      const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['tasks'] })
-      qc.setQueriesData<TasksResponse>({ queryKey: ['tasks'] }, (old) => {
+      await qc.cancelQueries({ queryKey: ['ws', slug, 'tasks'] })
+      const snapshot = qc.getQueriesData<TasksResponse>({ queryKey: ['ws', slug, 'tasks'] })
+      qc.setQueriesData<TasksResponse>({ queryKey: ['ws', slug, 'tasks'] }, (old) => {
         if (!old?.tasks) return old
         return {
           ...old,
@@ -252,7 +254,7 @@ export function useMoveTask() {
         }
       }
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['ws', slug, 'tasks'] }),
   })
 }
 
@@ -263,12 +265,13 @@ export interface TaskStats {
   byPriority: Record<string, number>
 }
 
-export function useTaskStats() {
+export function useTaskStats(slug: string) {
   return useQuery<TaskStats>({
-    queryKey: ['tasks', 'stats'],
+    queryKey: ['ws', slug, 'tasks', 'stats'],
     queryFn: async () => {
-      const { data } = await api.get('/api/tasks/stats')
+      const { data } = await api.get(`/api/workspaces/${slug}/tasks/stats`)
       return data
     },
+    enabled: !!slug,
   })
 }

@@ -1,8 +1,9 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { taskSchema, type TaskInput } from '@/lib/schemas'
-import { useUsers } from '@/hooks/useUsers'
+import { useMembers } from '@/hooks/useMembers'
 import { useAuth } from '@/context/AuthContext'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -25,7 +26,9 @@ export default function TaskForm({
   statusOnly = false,
 }: TaskFormProps) {
   const { isAdmin } = useAuth()
-  const { data: users = [] } = useUsers()
+  const { slug } = useCurrentWorkspace()
+  const { data: membersData } = useMembers(slug, { limit: 100 })
+  const users = (membersData?.members ?? []).map((m) => m.user)
 
   const form = useForm<TaskInput>({
     resolver: zodResolver(taskSchema),

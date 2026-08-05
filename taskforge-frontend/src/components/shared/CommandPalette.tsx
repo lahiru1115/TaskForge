@@ -72,9 +72,9 @@ export default function CommandPalette() {
 
   const tasks = useMemo(() => {
     if (!open) return []
-    const entries = queryClient.getQueriesData<unknown>({ queryKey: ['tasks'] })
+    const entries = queryClient.getQueriesData<unknown>({ queryKey: ['ws', slug, 'tasks'] })
     return collectCachedTasks(entries).slice(0, 200)
-  }, [open, queryClient])
+  }, [open, queryClient, slug])
 
   function runCommand(action: () => void) {
     setOpen(false)

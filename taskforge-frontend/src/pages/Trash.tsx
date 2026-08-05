@@ -2,6 +2,7 @@ import { Trash2, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTrash, useRestoreTask, usePermanentlyDeleteTask } from '@/hooks/useTasks'
 import { useAuth } from '@/context/AuthContext'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import StatusBadge from '@/components/shared/StatusBadge'
 import PriorityBadge from '@/components/shared/PriorityBadge'
 import PermanentDeleteDialog from '@/components/task/PermanentDeleteDialog'
@@ -22,9 +23,10 @@ function timeAgo(iso: string) {
 
 export default function TrashPage() {
   const { user, isAdmin } = useAuth()
-  const { data, isLoading, isError } = useTrash()
-  const restore = useRestoreTask()
-  const permanentlyDelete = usePermanentlyDeleteTask()
+  const { slug } = useCurrentWorkspace()
+  const { data, isLoading, isError } = useTrash(slug)
+  const restore = useRestoreTask(slug)
+  const permanentlyDelete = usePermanentlyDeleteTask(slug)
 
   const tasks = data?.tasks ?? []
 

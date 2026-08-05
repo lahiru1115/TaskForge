@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ClipboardList, LayoutGrid, Table2 } from 'lucide-react'
 import { useTasks, type Task, type TaskFilters } from '@/hooks/useTasks'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import FilterBar from '@/components/task/FilterBar'
 import TaskCard from '@/components/task/TaskCard'
 import TaskTable from '@/components/task/TaskTable'
@@ -35,6 +36,7 @@ function readStorage<T>(key: string, fallback: T): T {
 }
 
 export default function TasksPage() {
+  const { slug } = useCurrentWorkspace()
   const [view, setView] = useState<ViewMode>(
     () => readStorage('view', (localStorage.getItem('taskview-mode') as ViewMode) ?? 'table'),
   )
@@ -84,7 +86,7 @@ export default function TasksPage() {
     })
   }
 
-  const { data: response, isLoading, isError } = useTasks(filters)
+  const { data: response, isLoading, isError } = useTasks(slug, filters)
   const tasks = response?.tasks ?? []
   const pagination = response?.pagination
   const selectedTasks = Array.from(selected.values())

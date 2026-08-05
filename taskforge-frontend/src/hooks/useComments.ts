@@ -11,34 +11,34 @@ export interface Comment {
   updatedAt: string
 }
 
-export function useTaskComments(taskId: string) {
+export function useTaskComments(slug: string, taskId: string) {
   return useQuery<Comment[]>({
-    queryKey: ['comments', taskId],
+    queryKey: ['ws', slug, 'comments', taskId],
     queryFn: async () => {
-      const { data } = await api.get(`/api/tasks/${taskId}/comments`)
+      const { data } = await api.get(`/api/workspaces/${slug}/tasks/${taskId}/comments`)
       return data.comments
     },
-    enabled: !!taskId,
+    enabled: !!slug && !!taskId,
   })
 }
 
-export function useAddComment(taskId: string) {
+export function useAddComment(slug: string, taskId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (body: string) => {
-      const { data } = await api.post(`/api/tasks/${taskId}/comments`, { body })
+      const { data } = await api.post(`/api/workspaces/${slug}/tasks/${taskId}/comments`, { body })
       return data.comment as Comment
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['comments', taskId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ws', slug, 'comments', taskId] }),
   })
 }
 
-export function useDeleteComment(taskId: string) {
+export function useDeleteComment(slug: string, taskId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (commentId: string) => {
-      await api.delete(`/api/tasks/${taskId}/comments/${commentId}`)
+      await api.delete(`/api/workspaces/${slug}/tasks/${taskId}/comments/${commentId}`)
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['comments', taskId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ws', slug, 'comments', taskId] }),
   })
 }

@@ -21,13 +21,13 @@ export interface Activity {
   createdAt: string
 }
 
-export function useTaskActivity(taskId: string) {
+export function useTaskActivity(slug: string, taskId: string) {
   return useQuery<Activity[]>({
-    queryKey: ['activity', taskId],
+    queryKey: ['ws', slug, 'activity', taskId],
     queryFn: async () => {
-      const { data } = await api.get(`/api/tasks/${taskId}/activity`)
+      const { data } = await api.get(`/api/workspaces/${slug}/tasks/${taskId}/activity`)
       return data.activities
     },
-    enabled: !!taskId,
+    enabled: !!slug && !!taskId,
   })
 }

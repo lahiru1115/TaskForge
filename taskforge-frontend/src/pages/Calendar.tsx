@@ -41,7 +41,7 @@ export default function CalendarPage() {
   const [overflow, setOverflow] = useState<DayState>(null)
   const [activeStatuses, setActiveStatuses] = useState<Set<Task['status']>>(new Set())
 
-  const { data: response, isLoading } = useTasks({ limit: 500 })
+  const { data: response, isLoading } = useTasks(slug, { limit: 500 })
   const tasks = response?.tasks ?? []
 
   function toggleStatus(status: Task['status']) {

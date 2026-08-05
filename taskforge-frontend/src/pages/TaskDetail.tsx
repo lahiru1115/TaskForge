@@ -39,9 +39,9 @@ export default function TaskDetailPage() {
   const { user, isAdmin } = useAuth()
   const { slug } = useCurrentWorkspace()
 
-  const { data: task, isLoading, isError } = useTask(id!)
-  const remove = useDeleteTask()
-  const restore = useRestoreTask()
+  const { data: task, isLoading, isError } = useTask(slug, id!)
+  const remove = useDeleteTask(slug)
+  const restore = useRestoreTask(slug)
 
   if (isLoading) {
     return (

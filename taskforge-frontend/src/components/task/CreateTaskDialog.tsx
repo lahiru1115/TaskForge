@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCreateTask } from '@/hooks/useTasks'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -25,7 +26,8 @@ export default function CreateTaskDialog({ defaultDueDate, open: externalOpen, o
   const open = isControlled ? externalOpen : internalOpen
   const setOpen = isControlled ? (externalOnOpenChange ?? (() => {})) : setInternalOpen
 
-  const create = useCreateTask()
+  const { slug } = useCurrentWorkspace()
+  const create = useCreateTask(slug)
 
   async function handleSubmit(values: TaskInput) {
     const body = {

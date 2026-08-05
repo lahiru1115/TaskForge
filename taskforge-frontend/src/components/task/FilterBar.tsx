@@ -2,8 +2,9 @@ import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { useUsers } from '@/hooks/useUsers'
+import { useMembers } from '@/hooks/useMembers'
 import { useAuth } from '@/context/AuthContext'
+import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { cn } from '@/lib/utils'
 import type { TaskFilters } from '@/hooks/useTasks'
 
@@ -81,7 +82,9 @@ function hasActiveFilters(f: TaskFilters) {
 
 export default function FilterBar({ filters, onChange }: FilterBarProps) {
   const { isAdmin } = useAuth()
-  const { data: users = [] } = useUsers()
+  const { slug } = useCurrentWorkspace()
+  const { data: membersData } = useMembers(slug, { limit: 100 })
+  const users = (membersData?.members ?? []).map((m) => m.user)
 
   function set(key: keyof TaskFilters, value: string) {
     onChange({ ...filters, [key]: value })
