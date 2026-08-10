@@ -91,7 +91,8 @@ async function seed() {
   const workspaces: Record<string, InstanceType<typeof Workspace>> = {};
   for (const w of workspacesData) {
     workspaces[w.key] = await Workspace.create({
-      name: w.name,
+      workspaceName: w.workspaceName,
+      organizationName: w.organizationName,
       slug: w.slug,
       owner: users[w.owner]._id,
     });

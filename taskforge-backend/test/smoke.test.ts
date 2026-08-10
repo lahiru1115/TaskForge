@@ -60,7 +60,8 @@ describe('task smoke: create -> list (workspace-scoped)', () => {
     // Workspace CRUD doesn't exist yet (lands separately) — create one
     // directly so the workspace-scoped task routes have something to resolve.
     const workspace = await Workspace.create({
-      name: 'Smoke Workspace',
+      workspaceName: 'Smoke Workspace',
+      organizationName: 'Smoke Org',
       slug: 'smoke-workspace',
       owner: res.body.user._id,
     });

@@ -6,7 +6,8 @@ export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer'
 
 export interface Workspace {
   _id: string
-  name: string
+  workspaceName: string
+  organizationName: string
   slug: string
   owner: string
   createdAt: string
@@ -53,7 +54,7 @@ export function useCreateWorkspace() {
 export function useUpdateWorkspace(slug: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (body: { name: string }) => {
+    mutationFn: async (body: { workspaceName: string; organizationName: string }) => {
       const { data } = await api.patch(`/api/workspaces/${slug}`, body)
       return data.workspace as Workspace
     },

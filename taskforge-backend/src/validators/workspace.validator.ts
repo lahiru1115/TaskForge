@@ -16,12 +16,14 @@ const slug = z
 const assignableRole = z.enum(WORKSPACE_ROLES.filter((r) => r !== 'owner') as [string, ...string[]]);
 
 export const createWorkspaceSchema = z.object({
-  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80),
+  workspaceName: z.string().trim().min(2, 'Workspace name must be at least 2 characters').max(80),
+  organizationName: z.string().trim().min(2, 'Organization name must be at least 2 characters').max(80),
   slug,
 });
 
 export const updateWorkspaceSchema = z.object({
-  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80),
+  workspaceName: z.string().trim().min(2, 'Workspace name must be at least 2 characters').max(80),
+  organizationName: z.string().trim().min(2, 'Organization name must be at least 2 characters').max(80),
 });
 
 export const memberParamsSchema = z.object({ userId: objectId });

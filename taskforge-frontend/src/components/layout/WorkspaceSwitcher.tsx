@@ -46,8 +46,10 @@ export default function WorkspaceSwitcher() {
                 <Building2 className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                <span className="truncate font-medium">{workspace?.name ?? 'Select workspace'}</span>
-                <span className="truncate text-xs text-sidebar-foreground/60">TaskForge</span>
+                <span className="truncate font-medium">{workspace?.workspaceName ?? 'Select workspace'}</span>
+                <span className="truncate text-xs text-sidebar-foreground/60">
+                  {workspace?.organizationName ?? 'TaskForge'}
+                </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
             </SidebarMenuButton>
@@ -59,9 +61,9 @@ export default function WorkspaceSwitcher() {
                 <CommandEmpty>No workspace found.</CommandEmpty>
                 <CommandGroup heading="Workspaces">
                   {memberships?.map(({ workspace: w, role }) => (
-                    <CommandItem key={w._id} value={w.name} onSelect={() => handleSelect(w.slug)}>
+                    <CommandItem key={w._id} value={w.workspaceName} onSelect={() => handleSelect(w.slug)}>
                       <Check className={cn('size-4', w.slug === currentSlug ? 'opacity-100' : 'opacity-0')} />
-                      <span className="flex-1 truncate">{w.name}</span>
+                      <span className="flex-1 truncate">{w.workspaceName}</span>
                       <span className="text-xs text-muted-foreground capitalize">{role}</span>
                     </CommandItem>
                   ))}

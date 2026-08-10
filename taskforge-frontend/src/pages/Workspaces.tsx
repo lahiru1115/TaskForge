@@ -108,13 +108,14 @@ export default function WorkspacesPage() {
                           <Building2 className="size-5" />
                         </div>
                         <div className="min-w-0">
-                          <CardTitle className="truncate text-base">{workspace.name}</CardTitle>
+                          <CardTitle className="truncate text-base">{workspace.workspaceName}</CardTitle>
                           <p className="truncate text-xs text-muted-foreground">/w/{workspace.slug}</p>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <Badge variant="secondary" className="gap-1 capitalize">
+                    <CardContent className="grid gap-2">
+                      <p className="truncate text-sm text-muted-foreground">{workspace.organizationName}</p>
+                      <Badge variant="secondary" className="w-fit gap-1 capitalize">
                         <RoleIcon className="size-3" />
                         {role}
                       </Badge>

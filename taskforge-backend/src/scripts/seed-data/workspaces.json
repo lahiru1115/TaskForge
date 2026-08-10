@@ -1,4 +1,4 @@
 [
-  { "key": "acme", "name": "Acme Product", "slug": "acme-product", "owner": "admin" },
-  { "key": "side", "name": "Side Project", "slug": "side-project", "owner": "admin" }
+  { "key": "acme", "workspaceName": "Acme Product", "organizationName": "Acme Corporation", "slug": "acme-product", "owner": "admin" },
+  { "key": "side", "workspaceName": "Side Project", "organizationName": "Nova Ventures", "slug": "side-project", "owner": "admin" }
 ]

@@ -23,7 +23,8 @@ export const taskSchema = z.object({
 // Mirrors the backend's slug validation (workspace.validator.ts) so a bad
 // slug is caught here, not just as a 400 after submit.
 export const createWorkspaceSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(80),
+  workspaceName: z.string().min(2, 'Workspace name must be at least 2 characters').max(80),
+  organizationName: z.string().min(2, 'Organization name must be at least 2 characters').max(80),
   slug: z
     .string()
     .min(2, 'URL must be at least 2 characters')

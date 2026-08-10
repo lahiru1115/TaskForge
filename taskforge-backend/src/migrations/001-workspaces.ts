@@ -24,7 +24,10 @@ async function up(): Promise<void> {
     { $setOnInsert: { name: DEFAULT_WORKSPACE.name, slug: DEFAULT_WORKSPACE.slug, owner: owner._id } },
     { upsert: true, returnDocument: 'after' }
   );
-  console.log(`  Workspace "${workspace.name}" (${workspace.slug}) ready — owner ${owner.email}`);
+  // Still writes the legacy `name` field on purpose — this migration is historical
+  // (already stamped/applied) and predates workspaceName/organizationName, which
+  // 002-organization-name.ts backfills on top of whatever this one produces.
+  console.log(`  Workspace "${DEFAULT_WORKSPACE.name}" (${workspace.slug}) ready — owner ${owner.email}`);
 
   const memberOps = users.map((u) => {
     let role: WorkspaceRole;

@@ -33,12 +33,12 @@ export async function listWorkspaces(req: Request, res: Response) {
 }
 
 export async function createWorkspace(req: Request, res: Response) {
-  const { name, slug } = req.body as CreateWorkspaceInput;
+  const { workspaceName, organizationName, slug } = req.body as CreateWorkspaceInput;
 
   const existing = await Workspace.findOne({ slug });
   if (existing) throw ApiError.conflict('That workspace URL is already taken');
 
-  const workspace = await Workspace.create({ name, slug, owner: req.user!._id });
+  const workspace = await Workspace.create({ workspaceName, organizationName, slug, owner: req.user!._id });
   await WorkspaceMember.create({
     workspace: workspace._id,
     user: req.user!._id,
@@ -54,10 +54,11 @@ export async function getWorkspace(req: Request, res: Response) {
 }
 
 export async function updateWorkspace(req: Request, res: Response) {
-  const { name } = req.body as UpdateWorkspaceInput;
+  const { workspaceName, organizationName } = req.body as UpdateWorkspaceInput;
 
   const workspace = req.workspace!;
-  workspace.name = name;
+  workspace.workspaceName = workspaceName;
+  workspace.organizationName = organizationName;
   await workspace.save();
 
   res.json({ workspace });

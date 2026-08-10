@@ -23,12 +23,12 @@ export default function CreateWorkspaceDialog() {
 
   const form = useForm<CreateWorkspaceInput>({
     resolver: zodResolver(createWorkspaceSchema),
-    defaultValues: { name: '', slug: '' },
+    defaultValues: { workspaceName: '', organizationName: '', slug: '' },
   })
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const name = e.target.value
-    form.setValue('name', name)
+    form.setValue('workspaceName', name)
     if (!slugTouched) form.setValue('slug', slugify(name))
   }
 
@@ -48,7 +48,7 @@ export default function CreateWorkspaceDialog() {
   async function onSubmit(values: CreateWorkspaceInput) {
     try {
       const workspace = await create.mutateAsync(values)
-      toast.success(`"${workspace.name}" created`)
+      toast.success(`"${workspace.workspaceName}" created`)
       handleOpenChange(false)
       navigate(`/w/${workspace.slug}`)
     } catch (err: unknown) {
@@ -72,17 +72,33 @@ export default function CreateWorkspaceDialog() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup className="gap-5">
             <Field>
-              <FieldLabel>Name</FieldLabel>
+              <FieldLabel>Workspace name</FieldLabel>
               <FieldContent>
                 <Input
                   placeholder="Acme Product"
-                  {...form.register('name')}
+                  {...form.register('workspaceName')}
                   onChange={handleNameChange}
-                  aria-invalid={!!form.formState.errors.name}
+                  aria-invalid={!!form.formState.errors.workspaceName}
                   autoFocus
                 />
               </FieldContent>
-              {form.formState.errors.name && <FieldError>{form.formState.errors.name.message}</FieldError>}
+              {form.formState.errors.workspaceName && (
+                <FieldError>{form.formState.errors.workspaceName.message}</FieldError>
+              )}
+            </Field>
+
+            <Field>
+              <FieldLabel>Organization name</FieldLabel>
+              <FieldContent>
+                <Input
+                  placeholder="Acme Inc."
+                  {...form.register('organizationName')}
+                  aria-invalid={!!form.formState.errors.organizationName}
+                />
+              </FieldContent>
+              {form.formState.errors.organizationName && (
+                <FieldError>{form.formState.errors.organizationName.message}</FieldError>
+              )}
             </Field>
 
             <Field>

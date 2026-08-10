@@ -2,7 +2,8 @@ import { Schema, model, Document, Types } from 'mongoose';
 
 export interface IWorkspace extends Document {
   _id: Types.ObjectId;
-  name: string;
+  workspaceName: string;
+  organizationName: string;
   slug: string;
   owner: Types.ObjectId;
   createdAt: Date;
@@ -11,7 +12,8 @@ export interface IWorkspace extends Document {
 
 const workspaceSchema = new Schema<IWorkspace>(
   {
-    name: { type: String, required: true, trim: true, maxlength: 80 },
+    workspaceName: { type: String, required: true, trim: true, maxlength: 80 },
+    organizationName: { type: String, required: true, trim: true, maxlength: 80 },
     slug: {
       type: String,
       required: true,

@@ -1,6 +1,7 @@
 import { connectDB, disconnectDB } from '../config/db';
 import { Migration } from '../models/Migration';
 import migration001 from './001-workspaces';
+import migration002 from './002-organization-name';
 
 export type MigrationModule = {
   name: string;
@@ -13,7 +14,7 @@ export type MigrationModule = {
 //
 // To add one: write src/migrations/00N-description.ts exporting a default
 // `{ name, up }` (see 001-workspaces.ts), then import and append it above.
-const MIGRATIONS: MigrationModule[] = [migration001];
+const MIGRATIONS: MigrationModule[] = [migration001, migration002];
 
 async function run() {
   await connectDB();
