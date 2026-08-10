@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
-import { Building2, Crown, Shield, User as UserIcon, Eye, LogOut } from 'lucide-react'
+import { ArrowLeft, Building2, Crown, Shield, User as UserIcon, Eye, LogOut, Sun, Moon } from 'lucide-react'
 import { useWorkspaces, type WorkspaceRole } from '@/hooks/useWorkspaces'
 import { useAuth } from '@/context/AuthContext'
+import { useDarkMode } from '@/hooks/useDarkMode'
+import { LAST_WORKSPACE_KEY } from '@/components/layout/WorkspaceLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
@@ -17,25 +19,46 @@ const ROLE_ICON: Record<WorkspaceRole, React.ElementType> = {
 }
 
 export default function WorkspacesPage() {
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
   const { data: memberships, isLoading, isError } = useWorkspaces()
+  const [dark, toggleDark] = useDarkMode()
+  const lastSlug = localStorage.getItem(LAST_WORKSPACE_KEY)
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
+        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
           <div className="flex items-center gap-2 font-semibold text-foreground">
             <AppLogo size={24} />
             TaskForge
           </div>
-          <Button variant="ghost" size="sm" onClick={logout}>
-            <LogOut className="size-4" />
-            Log out
-          </Button>
+          <div className="flex items-center gap-1">
+            {user && (
+              <span className="hidden pr-2 text-sm text-muted-foreground sm:inline">{user.name}</span>
+            )}
+            <Button variant="ghost" size="icon-sm" onClick={toggleDark} aria-label="Toggle theme">
+              {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={logout}>
+              <LogOut className="size-4" />
+              Log out
+            </Button>
+          </div>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-3xl gap-6 px-4 py-10">
+      <div className="mx-auto grid w-full max-w-4xl gap-4 px-4 py-10">
+        {lastSlug && (
+          <div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to={`/w/${lastSlug}`}>
+                <ArrowLeft className="size-4" />
+                Back
+              </Link>
+            </Button>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Your workspaces</h1>
@@ -53,15 +76,15 @@ export default function WorkspacesPage() {
         )}
 
         {isLoading && (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 rounded-lg" />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-32 rounded-xl" />
             ))}
           </div>
         )}
 
         {!isLoading && !isError && memberships?.length === 0 && (
-          <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed py-16 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-16 text-center">
             <Building2 className="size-10 text-muted-foreground/30" />
             <div>
               <p className="font-medium">No workspaces yet</p>
@@ -73,23 +96,28 @@ export default function WorkspacesPage() {
         )}
 
         {!isLoading && !isError && memberships && memberships.length > 0 && (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {memberships.map(({ workspace, role }) => {
               const RoleIcon = ROLE_ICON[role]
               return (
                 <Link key={workspace._id} to={`/w/${workspace.slug}`}>
-                  <Card className="h-full transition-shadow hover:shadow-md">
+                  <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-md">
                     <CardHeader>
-                      <div className="flex items-center justify-between gap-2">
-                        <CardTitle className="text-base">{workspace.name}</CardTitle>
-                        <Badge variant="secondary" className="shrink-0 gap-1 capitalize">
-                          <RoleIcon className="size-3" />
-                          {role}
-                        </Badge>
+                      <div className="flex items-start gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Building2 className="size-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <CardTitle className="truncate text-base">{workspace.name}</CardTitle>
+                          <p className="truncate text-xs text-muted-foreground">/w/{workspace.slug}</p>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground">/w/{workspace.slug}</p>
+                      <Badge variant="secondary" className="gap-1 capitalize">
+                        <RoleIcon className="size-3" />
+                        {role}
+                      </Badge>
                     </CardContent>
                   </Card>
                 </Link>
