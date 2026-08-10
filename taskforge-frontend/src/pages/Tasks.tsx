@@ -41,7 +41,7 @@ export default function TasksPage() {
     () => readStorage('view', (localStorage.getItem('taskview-mode') as ViewMode) ?? 'table'),
   )
   const [filters, setFilters] = useState<TaskFilters>(
-    () => readStorage('filters', { ...DEFAULT_FILTERS, page: 1, limit: 10 }),
+    () => readStorage('filters', { ...DEFAULT_FILTERS, page: 1, limit: view === 'table' ? 10 : 12 }),
   )
   // Keyed by task id so selections made on one page survive navigating to another.
   const [selected, setSelected] = useState<Map<string, Task>>(new Map())
@@ -54,12 +54,12 @@ export default function TasksPage() {
   function handleViewChange(newView: ViewMode) {
     setView(newView)
     localStorage.setItem('taskview-mode', newView)
-    setFilters((prev) => ({ ...prev, limit: newView === 'table' ? 10 : 9 }))
+    setFilters((prev) => ({ ...prev, limit: newView === 'table' ? 10 : 12 }))
     setSelected(new Map())
   }
 
   function handleFilterChange(newFilters: TaskFilters) {
-    setFilters({ ...newFilters, page: 1, limit: view === 'table' ? 10 : 9 })
+    setFilters({ ...newFilters, page: 1, limit: view === 'table' ? 10 : 12 })
     setSelected(new Map())
   }
 
@@ -165,7 +165,7 @@ export default function TasksPage() {
               onToggleAll={toggleSelectAll}
             />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {tasks.map((task) => (
                 <TaskCard key={task._id} task={task} />
               ))}
