@@ -2,10 +2,8 @@ import { useEffect } from 'react'
 import { Outlet, Link } from 'react-router-dom'
 import { Building2, Loader2 } from 'lucide-react'
 import { WorkspaceProvider, useCurrentWorkspace } from '@/context/WorkspaceContext'
+import { LAST_WORKSPACE_KEY } from '@/lib/storage'
 import { Button } from '@/components/ui/button'
-
-// Read by App.tsx's root redirect so "/" reopens the last workspace visited.
-export const LAST_WORKSPACE_KEY = 'tf-last-workspace'
 
 function WorkspaceGate() {
   const { slug, workspace, isLoading, isError } = useCurrentWorkspace()

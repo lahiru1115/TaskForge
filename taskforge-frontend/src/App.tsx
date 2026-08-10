@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
-import WorkspaceLayout, { LAST_WORKSPACE_KEY } from '@/components/layout/WorkspaceLayout'
+import WorkspaceLayout from '@/components/layout/WorkspaceLayout'
+import { LAST_WORKSPACE_KEY } from '@/lib/storage'
 import AppSidebar from '@/components/layout/AppSidebar'
 import SiteHeader from '@/components/layout/SiteHeader'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'

@@ -3,7 +3,7 @@ import { ArrowLeft, Building2, Crown, Shield, User as UserIcon, Eye, LogOut, Sun
 import { useWorkspaces, type WorkspaceRole } from '@/hooks/useWorkspaces'
 import { useAuth } from '@/context/AuthContext'
 import { useDarkMode } from '@/hooks/useDarkMode'
-import { LAST_WORKSPACE_KEY } from '@/components/layout/WorkspaceLayout'
+import { LAST_WORKSPACE_KEY } from '@/lib/storage'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'

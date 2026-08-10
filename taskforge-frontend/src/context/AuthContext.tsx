@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import api from '@/lib/api'
+import { queryClient } from '@/lib/queryClient'
+import { AUTH_USER_KEY, LAST_WORKSPACE_KEY } from '@/lib/storage'
 
 export interface AuthUser {
   _id: string
@@ -21,18 +23,36 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 function loadUser(): AuthUser | null {
   try {
-    const raw = localStorage.getItem('tf_user')
+    const raw = localStorage.getItem(AUTH_USER_KEY)
     return raw ? (JSON.parse(raw) as AuthUser) : null
   } catch {
     return null
   }
 }
 
+/**
+ * Drop everything scoped to the account that was signed in: the cached API
+ * responses (TanStack's cache is a module singleton, so it outlives sign-out)
+ * and the last-visited workspace pointer. Without this the next account to
+ * sign in on the same browser is served the previous user's cached workspace
+ * and redirected into a workspace it may not even be a member of.
+ */
+function clearAccountState() {
+  localStorage.removeItem(LAST_WORKSPACE_KEY)
+  queryClient.clear()
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(loadUser)
 
   const login = useCallback((u: AuthUser) => {
-    localStorage.setItem('tf_user', JSON.stringify(u))
+    // Covers the api.ts 401 interceptor, which drops tf_user and hard-redirects
+    // to /login without ever running logout() — so a different account signing
+    // in that way still starts clean.
+    const previous = loadUser()
+    if (previous && previous._id !== u._id) clearAccountState()
+
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(u))
     setUser(u)
   }, [])
 
@@ -42,12 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // best-effort — clear client state regardless
     }
-    localStorage.removeItem('tf_user')
+    localStorage.removeItem(AUTH_USER_KEY)
+    clearAccountState()
     setUser(null)
   }, [])
 
   const updateUser = useCallback((u: AuthUser) => {
-    localStorage.setItem('tf_user', JSON.stringify(u))
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(u))
     setUser(u)
   }, [])
 
