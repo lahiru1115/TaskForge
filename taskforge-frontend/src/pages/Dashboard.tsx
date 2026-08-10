@@ -168,7 +168,7 @@ export default function DashboardPage() {
   const { data: stats, isLoading, isError } = useTaskStats(slug)
 
   return (
-    <div className="grid gap-8">
+    <div className="mx-auto grid max-w-6xl gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
