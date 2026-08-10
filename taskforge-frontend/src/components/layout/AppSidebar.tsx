@@ -55,7 +55,12 @@ export default function AppSidebar() {
                 const fullPath = workspacePath(to)
                 return (
                   <SidebarMenuItem key={to}>
-                    <SidebarMenuButton asChild isActive={isItemActive(fullPath)} tooltip={label}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isItemActive(fullPath)}
+                      tooltip={label}
+                      className="data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:hover:bg-sidebar-primary/90 data-[active=true]:hover:text-sidebar-primary-foreground"
+                    >
                       <NavLink to={fullPath} end>
                         <Icon />
                         <span>{label}</span>
