@@ -10,7 +10,6 @@ function readInitial() {
 function applyTheme(dark: boolean) {
   document.documentElement.classList.toggle('dark', dark)
   localStorage.setItem(STORAGE_KEY, dark ? 'dark' : 'light')
-  window.dispatchEvent(new CustomEvent<boolean>(THEME_CHANGE_EVENT, { detail: dark }))
 }
 
 /** Shared across every mount so toggling in one place (e.g. the command palette) updates all of them. */
@@ -26,11 +25,14 @@ export function useDarkMode() {
   }, [])
 
   function toggle() {
-    setDark((prev) => {
-      const next = !prev
-      applyTheme(next)
-      return next
-    })
+    // applyTheme (DOM mutation, localStorage write, cross-instance event
+    // dispatch) must stay out of the setDark updater — React invokes
+    // updaters more than once under StrictMode to check they're pure, and
+    // this has side effects. Compute `next` from the closure instead.
+    const next = !dark
+    applyTheme(next)
+    window.dispatchEvent(new CustomEvent<boolean>(THEME_CHANGE_EVENT, { detail: next }))
+    setDark(next)
   }
 
   return [dark, toggle] as const
