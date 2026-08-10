@@ -50,7 +50,7 @@ export default function InviteMemberDialog({ slug }: { slug: string }) {
           Invite member
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Invite a member</DialogTitle>
         </DialogHeader>

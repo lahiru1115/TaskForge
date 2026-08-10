@@ -55,10 +55,7 @@ export default function CreateTaskDialog({ defaultDueDate, open: externalOpen, o
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent
-        className="sm:max-w-md"
-        onInteractOutside={(e) => e.preventDefault()}
-      >
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>New task</DialogTitle>
         </DialogHeader>

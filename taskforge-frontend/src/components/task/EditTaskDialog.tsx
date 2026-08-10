@@ -69,7 +69,6 @@ export default function EditTaskDialog({ task, canManage }: EditTaskDialogProps)
       <DialogContent
         className="sm:max-w-md"
         onOpenAutoFocus={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle>Edit task</DialogTitle>

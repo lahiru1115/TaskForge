@@ -65,7 +65,7 @@ export default function CreateWorkspaceDialog() {
           New workspace
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>New workspace</DialogTitle>
         </DialogHeader>
