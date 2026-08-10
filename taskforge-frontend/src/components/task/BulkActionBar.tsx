@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useAuth } from '@/context/AuthContext'
 import { useCurrentWorkspace } from '@/context/WorkspaceContext'
+import { useWorkspaceRole } from '@/hooks/useWorkspaceRole'
 import { useMembers } from '@/hooks/useMembers'
 import { useBulkUpdateTasks, useBulkDeleteTasks, useRestoreTask } from '@/hooks/useTasks'
 import type { Task } from '@/hooks/useTasks'
@@ -39,8 +40,9 @@ interface BulkActionBarProps {
 }
 
 export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
-  const { user, isAdmin } = useAuth()
+  const { user } = useAuth()
   const { slug } = useCurrentWorkspace()
+  const { isManager } = useWorkspaceRole()
   const { data: membersData } = useMembers(slug, { limit: 100 })
   const users = (membersData?.members ?? []).map((m) => m.user)
   const bulkUpdate = useBulkUpdateTasks(slug)
@@ -50,7 +52,7 @@ export default function BulkActionBar({ tasks, onClear }: BulkActionBarProps) {
   const [pendingStatus, setPendingStatus] = useState('')
   const [pendingAssignee, setPendingAssignee] = useState('')
 
-  const manageable = tasks.filter((t) => isAdmin || t.createdBy._id === user?._id)
+  const manageable = tasks.filter((t) => isManager || t.createdBy._id === user?._id)
   const allIds = tasks.map((t) => t._id)
   const manageableIds = manageable.map((t) => t._id)
   const restrictedCount = tasks.length - manageable.length

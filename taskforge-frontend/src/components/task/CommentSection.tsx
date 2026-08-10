@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/context/AuthContext'
 import { useCurrentWorkspace } from '@/context/WorkspaceContext'
+import { useWorkspaceRole } from '@/hooks/useWorkspaceRole'
 import { useTaskComments, useAddComment, useDeleteComment } from '@/hooks/useComments'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -41,8 +42,9 @@ function avatarColor(name: string) {
 }
 
 export default function CommentSection({ taskId }: { taskId: string }) {
-  const { user, isAdmin } = useAuth()
+  const { user } = useAuth()
   const { slug } = useCurrentWorkspace()
+  const { isManager } = useWorkspaceRole()
   const { data: comments, isLoading } = useTaskComments(slug, taskId)
   const addComment = useAddComment(slug, taskId)
   const deleteComment = useDeleteComment(slug, taskId)
@@ -96,7 +98,7 @@ export default function CommentSection({ taskId }: { taskId: string }) {
         <div className="grid gap-4">
           {comments.map((c) => {
             const isOwn = c.author === user?._id
-            const canDelete = isOwn || isAdmin
+            const canDelete = isOwn || isManager
             return (
               <div key={c._id} className="flex gap-3 group">
                 <div className={`size-8 shrink-0 rounded-full flex items-center justify-center text-white text-xs font-semibold ${avatarColor(c.authorName)}`}>

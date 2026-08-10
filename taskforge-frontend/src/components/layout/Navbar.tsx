@@ -25,7 +25,7 @@ const NAV_ITEMS = [
 ] as const
 
 export default function Navbar() {
-  const { user, isAdmin, logout } = useAuth()
+  const { user, isPlatformAdmin, logout } = useAuth()
   const { slug } = useCurrentWorkspace()
   const navigate = useNavigate()
   const location = useLocation()
@@ -91,7 +91,7 @@ export default function Navbar() {
               >
                 {user.name}
               </Link>
-              {isAdmin && (
+              {isPlatformAdmin && (
                 <span className="hidden sm:inline rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
                   Admin
                 </span>
@@ -134,7 +134,7 @@ export default function Navbar() {
                 >
                   {user.name}
                 </Link>
-                {isAdmin && (
+                {isPlatformAdmin && (
                   <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
                     Admin
                   </span>

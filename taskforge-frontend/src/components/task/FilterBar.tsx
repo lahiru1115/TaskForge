@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { useMembers } from '@/hooks/useMembers'
-import { useAuth } from '@/context/AuthContext'
 import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { cn } from '@/lib/utils'
 import type { TaskFilters } from '@/hooks/useTasks'
@@ -81,7 +80,6 @@ function hasActiveFilters(f: TaskFilters) {
 }
 
 export default function FilterBar({ filters, onChange }: FilterBarProps) {
-  const { isAdmin } = useAuth()
   const { slug } = useCurrentWorkspace()
   const { data: membersData } = useMembers(slug, { limit: 100 })
   const users = (membersData?.members ?? []).map((m) => m.user)
@@ -124,14 +122,12 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         options={PRIORITY_OPTIONS}
         onChange={(v) => set('priority', v)}
       />
-      {isAdmin && (
-        <FilterSelect
-          value={filters.assignedTo}
-          placeholder="Assignee"
-          options={users.map((u) => ({ value: u._id, label: u.name }))}
-          onChange={(v) => set('assignedTo', v)}
-        />
-      )}
+      <FilterSelect
+        value={filters.assignedTo}
+        placeholder="Assignee"
+        options={users.map((u) => ({ value: u._id, label: u.name }))}
+        onChange={(v) => set('assignedTo', v)}
+      />
       <FilterSelect
         value={filters.sort}
         placeholder="Sort"

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { AlertCircle, CheckSquare, Users, Zap } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
@@ -29,6 +29,8 @@ const DEMO_ACCOUNTS = [
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from
   const [error, setError] = useState<string | null>(null)
   const [demoLoading, setDemoLoading] = useState<string | null>(null)
 
@@ -40,7 +42,7 @@ export default function LoginPage() {
   async function doLogin(email: string, password: string) {
     const { data } = await api.post('/api/auth/login', { email, password })
     login(data.user)
-    navigate('/')
+    navigate(from ?? '/')
   }
 
   async function onSubmit(values: LoginInput) {
@@ -208,6 +210,7 @@ export default function LoginPage() {
             Don't have an account?{' '}
             <Link
               to="/register"
+              state={from ? { from } : undefined}
               className="text-primary font-medium underline underline-offset-4 hover:text-primary/80 transition-colors"
             >
               Create one free

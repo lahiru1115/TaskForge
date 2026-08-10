@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { useTask, useDeleteTask, useRestoreTask } from '@/hooks/useTasks'
 import { useAuth } from '@/context/AuthContext'
 import { useCurrentWorkspace } from '@/context/WorkspaceContext'
+import { useWorkspaceRole } from '@/hooks/useWorkspaceRole'
 import StatusBadge from '@/components/shared/StatusBadge'
 import PriorityBadge from '@/components/shared/PriorityBadge'
 import EditTaskDialog from '@/components/task/EditTaskDialog'
@@ -36,8 +37,9 @@ function SidebarRow({ icon, label, value }: { icon: React.ReactNode; label: stri
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user, isAdmin } = useAuth()
+  const { user } = useAuth()
   const { slug } = useCurrentWorkspace()
+  const { isManager } = useWorkspaceRole()
 
   const { data: task, isLoading, isError } = useTask(slug, id!)
   const remove = useDeleteTask(slug)
@@ -81,7 +83,7 @@ export default function TaskDetailPage() {
     )
   }
 
-  const canManage = isAdmin || task.createdBy._id === user?._id
+  const canManage = isManager || task.createdBy._id === user?._id
   const isAssignee = !canManage && task.assignedTo?._id === user?._id
   const isOverdue = task.dueDate && task.status !== 'done' && new Date(task.dueDate) < new Date()
 

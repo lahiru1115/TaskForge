@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { LayoutList, Search, X } from 'lucide-react'
 import { useTasks, type TaskFilters } from '@/hooks/useTasks'
 import { useMembers } from '@/hooks/useMembers'
-import { useAuth } from '@/context/AuthContext'
 import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import KanbanBoard from '@/components/board/KanbanBoard'
 import CreateTaskDialog from '@/components/task/CreateTaskDialog'
@@ -25,7 +24,6 @@ function hasActiveFilters(f: TaskFilters) {
 
 export default function BoardPage() {
   const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS)
-  const { isAdmin } = useAuth()
   const { slug } = useCurrentWorkspace()
   const { data: membersData } = useMembers(slug, { limit: 100 })
   const users = (membersData?.members ?? []).map((m) => m.user)
@@ -73,14 +71,12 @@ export default function BoardPage() {
           onChange={(v) => set('priority', v)}
         />
 
-        {isAdmin && (
-          <FilterSelect
-            value={filters.assignedTo}
-            placeholder="Assignee"
-            options={users.map((u) => ({ value: u._id, label: u.name }))}
-            onChange={(v) => set('assignedTo', v)}
-          />
-        )}
+        <FilterSelect
+          value={filters.assignedTo}
+          placeholder="Assignee"
+          options={users.map((u) => ({ value: u._id, label: u.name }))}
+          onChange={(v) => set('assignedTo', v)}
+        />
 
         {hasActiveFilters(filters) && (
           <Button variant="ghost" size="sm" onClick={() => setFilters(DEFAULT_FILTERS)}>

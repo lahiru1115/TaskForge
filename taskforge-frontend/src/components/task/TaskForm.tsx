@@ -2,7 +2,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { taskSchema, type TaskInput } from '@/lib/schemas'
 import { useMembers } from '@/hooks/useMembers'
-import { useAuth } from '@/context/AuthContext'
 import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,7 +24,6 @@ export default function TaskForm({
   submitLabel = 'Save',
   statusOnly = false,
 }: TaskFormProps) {
-  const { isAdmin } = useAuth()
   const { slug } = useCurrentWorkspace()
   const { data: membersData } = useMembers(slug, { limit: 100 })
   const users = (membersData?.members ?? []).map((m) => m.user)
@@ -135,38 +133,34 @@ export default function TaskForm({
               </Field>
             </div>
 
-            {isAdmin ? (
-              <div className="grid grid-cols-2 gap-4">
-                <Field>
-                  <FieldLabel>Assign to</FieldLabel>
-                  <FieldContent>
-                    <Select
-                      value={form.watch('assignedTo') || '_none'}
-                      onValueChange={(v: string) => form.setValue('assignedTo', v === '_none' ? '' : (v as string))}
-                    >
-                      <SelectTrigger className="w-full" aria-invalid={!!form.formState.errors.assignedTo}>
-                        <SelectValue placeholder="Unassigned" />
-                      </SelectTrigger>
-                      <SelectContent position="popper">
-                        <SelectItem value="_none">Unassigned</SelectItem>
-                        {users.map((u) => (
-                          <SelectItem key={u._id} value={u._id}>
-                            {u.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FieldContent>
-                  {form.formState.errors.assignedTo && (
-                    <FieldError>{form.formState.errors.assignedTo.message}</FieldError>
-                  )}
-                </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel>Assign to</FieldLabel>
+                <FieldContent>
+                  <Select
+                    value={form.watch('assignedTo') || '_none'}
+                    onValueChange={(v: string) => form.setValue('assignedTo', v === '_none' ? '' : (v as string))}
+                  >
+                    <SelectTrigger className="w-full" aria-invalid={!!form.formState.errors.assignedTo}>
+                      <SelectValue placeholder="Unassigned" />
+                    </SelectTrigger>
+                    <SelectContent position="popper">
+                      <SelectItem value="_none">Unassigned</SelectItem>
+                      {users.map((u) => (
+                        <SelectItem key={u._id} value={u._id}>
+                          {u.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FieldContent>
+                {form.formState.errors.assignedTo && (
+                  <FieldError>{form.formState.errors.assignedTo.message}</FieldError>
+                )}
+              </Field>
 
-                {statusField}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">{statusField}</div>
-            )}
+              {statusField}
+            </div>
           </>
         )}
 

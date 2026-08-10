@@ -13,7 +13,8 @@ interface AuthContextValue {
   login: (user: AuthUser) => void
   logout: () => void
   updateUser: (user: AuthUser) => void
-  isAdmin: boolean
+  /** Platform staff flag (`User.role`) — grants no tenant access. Not a workspace permission; see useWorkspaceRole(). */
+  isPlatformAdmin: boolean
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, isPlatformAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   )

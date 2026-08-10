@@ -3,7 +3,6 @@ import { CalendarDays } from 'lucide-react'
 import StatusBadge from '@/components/shared/StatusBadge'
 import PriorityBadge from '@/components/shared/PriorityBadge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useAuth } from '@/context/AuthContext'
 import { useCurrentWorkspace } from '@/context/WorkspaceContext'
 import { cn } from '@/lib/utils'
 import type { Task } from '@/hooks/useTasks'
@@ -24,7 +23,6 @@ interface TaskTableProps {
 }
 
 export default function TaskTable({ tasks, selected, onToggle, onToggleAll }: TaskTableProps) {
-  const { isAdmin } = useAuth()
   const { slug } = useCurrentWorkspace()
   const allSelected = tasks.length > 0 && tasks.every((t) => selected.has(t._id))
   const someSelected = !allSelected && tasks.some((t) => selected.has(t._id))
@@ -45,7 +43,7 @@ export default function TaskTable({ tasks, selected, onToggle, onToggleAll }: Ta
             <th className="px-4 py-3 text-left font-medium">Status</th>
             <th className="px-4 py-3 text-left font-medium">Priority</th>
             <th className="px-4 py-3 text-left font-medium">Due date</th>
-            {isAdmin && <th className="px-4 py-3 text-left font-medium">Assignee</th>}
+            <th className="px-4 py-3 text-left font-medium">Assignee</th>
           </tr>
         </thead>
         <tbody>
@@ -95,11 +93,9 @@ export default function TaskTable({ tasks, selected, onToggle, onToggleAll }: Ta
                   <span className="text-muted-foreground">—</span>
                 )}
               </td>
-              {isAdmin && (
-                <td className="px-4 py-3 text-muted-foreground">
-                  {task.assignedTo?.name ?? '—'}
-                </td>
-              )}
+              <td className="px-4 py-3 text-muted-foreground">
+                {task.assignedTo?.name ?? '—'}
+              </td>
             </tr>
           ))}
         </tbody>

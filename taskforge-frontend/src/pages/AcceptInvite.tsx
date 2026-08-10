@@ -46,10 +46,10 @@ export default function AcceptInvitePage() {
             </div>
             <div className="grid gap-2">
               <Button asChild>
-                <Link to="/login">Log in</Link>
+                <Link to="/login" state={{ from: `/invite/${token}` }}>Log in</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link to="/register">Create an account</Link>
+                <Link to="/register" state={{ from: `/invite/${token}` }}>Create an account</Link>
               </Button>
             </div>
           </div>

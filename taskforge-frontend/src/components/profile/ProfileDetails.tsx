@@ -33,7 +33,7 @@ function fmt(iso: string) {
 }
 
 export default function ProfileDetails({ memberSince, loading, onUserUpdated }: ProfileDetailsProps) {
-  const { user, isAdmin } = useAuth()
+  const { user, isPlatformAdmin } = useAuth()
   const [editing, setEditing] = useState(false)
 
   const form = useForm<EditInput>({
@@ -121,7 +121,7 @@ export default function ProfileDetails({ memberSince, loading, onUserUpdated }: 
             <InfoRow
               icon={<ShieldCheck className="size-4" />}
               label="Role"
-              value={isAdmin ? 'Administrator' : 'Member'}
+              value={isPlatformAdmin ? 'Administrator' : 'Member'}
               loading={false}
             />
             <InfoRow

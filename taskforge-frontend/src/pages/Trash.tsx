@@ -22,7 +22,7 @@ function timeAgo(iso: string) {
 }
 
 export default function TrashPage() {
-  const { user, isAdmin } = useAuth()
+  const { user } = useAuth()
   const { slug } = useCurrentWorkspace()
   const { data, isLoading, isError } = useTrash(slug)
   const restore = useRestoreTask(slug)
@@ -92,7 +92,7 @@ export default function TrashPage() {
                   <PriorityBadge priority={task.priority} />
                   <span className="text-xs text-muted-foreground">
                     Deleted {timeAgo(task.deletedAt!)}
-                    {isAdmin && task.createdBy._id !== user?._id && ` · by ${task.createdBy.name}`}
+                    {task.createdBy._id !== user?._id && ` · by ${task.createdBy.name}`}
                   </span>
                 </div>
               </div>

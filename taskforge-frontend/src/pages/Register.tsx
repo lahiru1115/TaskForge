@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { CheckSquare, Users, Zap } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
@@ -20,6 +20,8 @@ const features = [
 export default function RegisterPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -31,7 +33,7 @@ export default function RegisterPage() {
       const { data } = await api.post('/api/auth/register', values)
       login(data.user)
       toast.success('Welcome to TaskForge!')
-      navigate('/')
+      navigate(from ?? '/')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       if (msg?.includes('already')) {
@@ -158,6 +160,7 @@ export default function RegisterPage() {
             Already have an account?{' '}
             <Link
               to="/login"
+              state={from ? { from } : undefined}
               className="text-primary font-medium underline underline-offset-4 hover:text-primary/80 transition-colors"
             >
               Sign in

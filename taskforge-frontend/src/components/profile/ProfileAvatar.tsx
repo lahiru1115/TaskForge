@@ -12,7 +12,7 @@ function initials(name: string) {
 }
 
 export default function ProfileAvatar() {
-  const { user, isAdmin } = useAuth()
+  const { user, isPlatformAdmin } = useAuth()
 
   return (
     <Card>
@@ -22,7 +22,7 @@ export default function ProfileAvatar() {
         </div>
         <div className="text-center">
           <p className="text-xl font-semibold">{user?.name}</p>
-          {isAdmin && (
+          {isPlatformAdmin && (
             <span className="mt-1 inline-block rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
               Admin
             </span>
