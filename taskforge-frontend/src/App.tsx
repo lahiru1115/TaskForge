@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
 import WorkspaceLayout, { LAST_WORKSPACE_KEY } from '@/components/layout/WorkspaceLayout'
-import Navbar from '@/components/layout/Navbar'
+import AppSidebar from '@/components/layout/AppSidebar'
+import SiteHeader from '@/components/layout/SiteHeader'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import CommandPalette from '@/components/shared/CommandPalette'
 import LoginPage from '@/pages/Login'
 import RegisterPage from '@/pages/Register'
@@ -18,13 +20,16 @@ import MembersPage from '@/pages/settings/Members'
 
 function AppLayout() {
   return (
-    <>
-      <Navbar />
-      <CommandPalette />
-      <main className="mx-auto max-w-7xl px-4 py-6">
-        <Outlet />
-      </main>
-    </>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <SiteHeader />
+        <CommandPalette />
+        <main className="flex-1 px-4 py-6 md:px-6">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 
