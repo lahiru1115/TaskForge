@@ -115,7 +115,7 @@ export default function CreateWorkspaceDialog() {
               {form.formState.errors.slug && <FieldError>{form.formState.errors.slug.message}</FieldError>}
             </Field>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <Button type="submit" className="flex-1" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? 'Creating…' : 'Create workspace'}
               </Button>

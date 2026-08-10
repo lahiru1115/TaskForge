@@ -169,7 +169,7 @@ export default function TaskForm({
 
         {!canEditAll && <div className="grid grid-cols-2 gap-4">{statusField}</div>}
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 pt-2">
           <Button type="submit" className="flex-1" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? 'Saving…' : submitLabel}
           </Button>

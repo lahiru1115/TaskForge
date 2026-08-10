@@ -95,7 +95,7 @@ export default function InviteMemberDialog({ slug }: { slug: string }) {
               {form.formState.errors.role && <FieldError>{form.formState.errors.role.message}</FieldError>}
             </Field>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <Button type="submit" className="flex-1" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? 'Sending…' : 'Send invite'}
               </Button>
