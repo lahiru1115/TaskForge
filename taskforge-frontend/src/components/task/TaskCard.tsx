@@ -18,7 +18,7 @@ export default function TaskCard({ task }: { task: Task }) {
   const { slug } = useCurrentWorkspace()
   return (
     <Link to={`/w/${slug}/tasks/${task._id}`} state={{ from: `/w/${slug}/tasks` }} className="group block">
-      <Card className="h-full transition-shadow group-hover:shadow-md">
+      <Card className="h-full gap-0 transition-shadow group-hover:shadow-md">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="min-h-12 text-base font-semibold leading-snug line-clamp-2">
