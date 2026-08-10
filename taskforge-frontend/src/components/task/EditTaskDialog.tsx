@@ -76,6 +76,7 @@ export default function EditTaskDialog({ task, canManage }: EditTaskDialogProps)
         <TaskForm
           defaultValues={defaultFormValues}
           onSubmit={handleEdit}
+          onCancel={() => setOpen(false)}
           submitLabel="Save changes"
           statusOnly={!canManage}
         />

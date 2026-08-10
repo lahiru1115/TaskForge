@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { X } from 'lucide-react'
 import { taskSchema, type TaskInput } from '@/lib/schemas'
 import { useMembers } from '@/hooks/useMembers'
 import { useCurrentWorkspace } from '@/context/WorkspaceContext'
@@ -13,6 +14,7 @@ import DatePicker from '@/components/shared/DatePicker'
 interface TaskFormProps {
   defaultValues?: Partial<TaskInput>
   onSubmit: (values: TaskInput) => Promise<void>
+  onCancel?: () => void
   submitLabel?: string
   /** When true, only the status field is editable (assignee view) */
   statusOnly?: boolean
@@ -21,6 +23,7 @@ interface TaskFormProps {
 export default function TaskForm({
   defaultValues,
   onSubmit,
+  onCancel,
   submitLabel = 'Save',
   statusOnly = false,
 }: TaskFormProps) {
@@ -166,9 +169,17 @@ export default function TaskForm({
 
         {!canEditAll && <div className="grid grid-cols-2 gap-4">{statusField}</div>}
 
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Saving…' : submitLabel}
-        </Button>
+        <div className="flex gap-2">
+          <Button type="submit" className="flex-1" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? 'Saving…' : submitLabel}
+          </Button>
+          {onCancel && (
+            <Button type="button" variant="ghost" onClick={onCancel} disabled={form.formState.isSubmitting}>
+              <X className="size-4" />
+              Cancel
+            </Button>
+          )}
+        </div>
       </FieldGroup>
     </form>
   )

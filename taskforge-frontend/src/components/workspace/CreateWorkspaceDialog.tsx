@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { useCreateWorkspace } from '@/hooks/useWorkspaces'
@@ -115,9 +115,20 @@ export default function CreateWorkspaceDialog() {
               {form.formState.errors.slug && <FieldError>{form.formState.errors.slug.message}</FieldError>}
             </Field>
 
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Creating…' : 'Create workspace'}
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Creating…' : 'Create workspace'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => handleOpenChange(false)}
+                disabled={form.formState.isSubmitting}
+              >
+                <X className="size-4" />
+                Cancel
+              </Button>
+            </div>
           </FieldGroup>
         </form>
       </DialogContent>

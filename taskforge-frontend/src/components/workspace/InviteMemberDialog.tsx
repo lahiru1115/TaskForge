@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCreateInvite } from '@/hooks/useMembers'
 import { createInviteSchema, type CreateInviteInput } from '@/lib/schemas'
@@ -95,9 +95,20 @@ export default function InviteMemberDialog({ slug }: { slug: string }) {
               {form.formState.errors.role && <FieldError>{form.formState.errors.role.message}</FieldError>}
             </Field>
 
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Sending…' : 'Send invite'}
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Sending…' : 'Send invite'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => handleOpenChange(false)}
+                disabled={form.formState.isSubmitting}
+              >
+                <X className="size-4" />
+                Cancel
+              </Button>
+            </div>
           </FieldGroup>
         </form>
       </DialogContent>

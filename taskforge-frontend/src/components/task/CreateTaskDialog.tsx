@@ -61,6 +61,7 @@ export default function CreateTaskDialog({ defaultDueDate, open: externalOpen, o
         </DialogHeader>
         <TaskForm
           onSubmit={handleSubmit}
+          onCancel={() => setOpen(false)}
           submitLabel="Create task"
           defaultValues={defaultDueDate ? { dueDate: defaultDueDate } : undefined}
         />
