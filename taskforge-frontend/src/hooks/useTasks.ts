@@ -102,7 +102,10 @@ export function useDeleteTask(slug: string) {
       await api.delete(`/api/workspaces/${slug}/tasks/${id}`)
       return id
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['ws', slug, 'tasks'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['ws', slug, 'tasks'] })
+      qc.invalidateQueries({ queryKey: ['ws', slug, 'trash'] })
+    },
   })
 }
 
