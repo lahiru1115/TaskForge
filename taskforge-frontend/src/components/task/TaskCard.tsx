@@ -21,16 +21,14 @@ export default function TaskCard({ task }: { task: Task }) {
       <Card className="h-full transition-shadow group-hover:shadow-md">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-base font-semibold leading-snug line-clamp-2">
+            <CardTitle className="min-h-12 text-base font-semibold leading-snug line-clamp-2">
               {task.title}
             </CardTitle>
             <PriorityBadge priority={task.priority} />
           </div>
         </CardHeader>
-        <CardContent className="grid gap-2 pt-0">
-          {task.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>
-          )}
+        <CardContent className="flex flex-1 flex-col gap-2 pt-0">
+          <p className="min-h-10 text-sm text-muted-foreground line-clamp-2">{task.description}</p>
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <StatusBadge status={task.status} />
             {task.dueDate && (
@@ -42,7 +40,7 @@ export default function TaskCard({ task }: { task: Task }) {
             )}
           </div>
           {task.assignedTo && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="mt-auto flex items-center gap-1 text-xs text-muted-foreground">
               <User className="size-3" />
               {task.assignedTo.name}
             </span>
