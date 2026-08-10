@@ -48,7 +48,7 @@ export default function ProfilePassword() {
   }
 
   return (
-    <Card>
+    <Card className="h-fit">
       <CardHeader className="pb-0">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">

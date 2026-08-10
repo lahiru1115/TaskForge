@@ -2,14 +2,13 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { User, Mail, ShieldCheck, Calendar, Pencil, X } from 'lucide-react'
+import { UserRound, Pencil, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/context/AuthContext'
 import api from '@/lib/api'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Field, FieldLabel, FieldContent, FieldError, FieldGroup } from '@/components/ui/field'
 
 const editSchema = z.object({
@@ -19,21 +18,11 @@ const editSchema = z.object({
 type EditInput = z.infer<typeof editSchema>
 
 interface ProfileDetailsProps {
-  memberSince: string | undefined
-  loading: boolean
   onUserUpdated: (name: string, email: string) => void
 }
 
-function fmt(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
-export default function ProfileDetails({ memberSince, loading, onUserUpdated }: ProfileDetailsProps) {
-  const { user, isPlatformAdmin } = useAuth()
+export default function ProfileDetails({ onUserUpdated }: ProfileDetailsProps) {
+  const { user } = useAuth()
   const [editing, setEditing] = useState(false)
 
   const form = useForm<EditInput>({
@@ -59,36 +48,39 @@ export default function ProfileDetails({ memberSince, loading, onUserUpdated }: 
   }
 
   return (
-    <Card>
-      <CardContent className="pt-6 pb-6">
+    <Card className="h-fit">
+      <CardHeader className="pb-0">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <UserRound className="size-4 text-muted-foreground" />
+            Personal information
+          </CardTitle>
+          {!editing && (
+            <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+              <Pencil className="size-4" />
+              Edit
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="pt-4 pb-6">
         {editing ? (
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <FieldGroup className="gap-4">
               <Field>
                 <FieldLabel>Full name</FieldLabel>
                 <FieldContent>
-                  <Input
-                    {...form.register('name')}
-                    aria-invalid={!!form.formState.errors.name}
-                  />
+                  <Input {...form.register('name')} aria-invalid={!!form.formState.errors.name} autoFocus />
                 </FieldContent>
-                {form.formState.errors.name && (
-                  <FieldError>{form.formState.errors.name.message}</FieldError>
-                )}
+                {form.formState.errors.name && <FieldError>{form.formState.errors.name.message}</FieldError>}
               </Field>
 
               <Field>
                 <FieldLabel>Email</FieldLabel>
                 <FieldContent>
-                  <Input
-                    type="email"
-                    {...form.register('email')}
-                    aria-invalid={!!form.formState.errors.email}
-                  />
+                  <Input type="email" {...form.register('email')} aria-invalid={!!form.formState.errors.email} />
                 </FieldContent>
-                {form.formState.errors.email && (
-                  <FieldError>{form.formState.errors.email.message}</FieldError>
-                )}
+                {form.formState.errors.email && <FieldError>{form.formState.errors.email.message}</FieldError>}
               </Field>
 
               <div className="flex gap-2 pt-1">
@@ -109,56 +101,22 @@ export default function ProfileDetails({ memberSince, loading, onUserUpdated }: 
             </FieldGroup>
           </form>
         ) : (
-          <div className="grid gap-5">
-            <div className="flex items-center justify-between">
-              <InfoRow icon={<User className="size-4" />} label="Full name" value={user?.name} loading={false} />
-              <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-                <Pencil className="size-4" />
-                Edit
-              </Button>
-            </div>
-            <InfoRow icon={<Mail className="size-4" />} label="Email" value={user?.email} loading={false} />
-            <InfoRow
-              icon={<ShieldCheck className="size-4" />}
-              label="Role"
-              value={isPlatformAdmin ? 'Administrator' : 'Member'}
-              loading={false}
-            />
-            <InfoRow
-              icon={<Calendar className="size-4" />}
-              label="Member since"
-              value={memberSince ? fmt(memberSince) : undefined}
-              loading={loading}
-            />
-          </div>
+          <FieldGroup className="gap-4">
+            <Field>
+              <FieldLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Full name
+              </FieldLabel>
+              <p className="text-sm text-foreground">{user?.name}</p>
+            </Field>
+            <Field>
+              <FieldLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Email
+              </FieldLabel>
+              <p className="text-sm text-foreground">{user?.email}</p>
+            </Field>
+          </FieldGroup>
         )}
       </CardContent>
     </Card>
-  )
-}
-
-function InfoRow({
-  icon,
-  label,
-  value,
-  loading,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string | undefined
-  loading: boolean
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-muted-foreground shrink-0">{icon}</span>
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-        {loading ? (
-          <Skeleton className="mt-1 h-4 w-32" />
-        ) : (
-          <p className="text-sm text-foreground truncate">{value ?? '—'}</p>
-        )}
-      </div>
-    </div>
   )
 }

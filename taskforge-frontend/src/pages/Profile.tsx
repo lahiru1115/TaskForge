@@ -1,12 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import api from '@/lib/api'
-import ProfileAvatar from '@/components/profile/ProfileAvatar'
+import ProfileHero from '@/components/profile/ProfileHero'
 import ProfileDetails from '@/components/profile/ProfileDetails'
 import ProfilePassword from '@/components/profile/ProfilePassword'
-import { Button } from '@/components/ui/button'
 
 interface MeResponse {
   _id: string
@@ -19,7 +16,6 @@ interface MeResponse {
 export default function ProfilePage() {
   const { user, updateUser } = useAuth()
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
 
   const { data: me, isLoading } = useQuery<MeResponse>({
     queryKey: ['me'],
@@ -32,23 +28,18 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg grid gap-6">
-      <div className="grid gap-1">
-        <Button variant="ghost" size="sm" className="w-fit -ml-2" onClick={() => navigate(-1)}>
-          <ArrowLeft className="size-4" />
-          Back
-        </Button>
+    <div className="mx-auto grid max-w-4xl gap-6">
+      <div>
         <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <p className="text-sm text-muted-foreground">Your account details.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Manage your account information and security.</p>
       </div>
 
-      <ProfileAvatar />
-      <ProfileDetails
-        memberSince={me?.createdAt}
-        loading={isLoading}
-        onUserUpdated={handleUserUpdated}
-      />
-      <ProfilePassword />
+      <ProfileHero memberSince={me?.createdAt} loading={isLoading} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ProfileDetails onUserUpdated={handleUserUpdated} />
+        <ProfilePassword />
+      </div>
     </div>
   )
 }
