@@ -92,12 +92,14 @@ export default function SiteHeader() {
       <Button
         variant="outline"
         size="sm"
-        className="ml-auto flex items-center gap-2 text-muted-foreground"
+        className="ml-auto flex w-64 items-center justify-between gap-2 text-muted-foreground"
         onClick={() => window.dispatchEvent(new Event(OPEN_COMMAND_PALETTE_EVENT))}
       >
-        <Search className="size-3.5" />
-        Search
-        <kbd className="ml-1 rounded border bg-muted px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
+        <span className="flex items-center gap-2">
+          <Search className="size-3.5" />
+          Search
+        </span>
+        <kbd className="rounded border bg-muted px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
       </Button>
     </header>
   )
