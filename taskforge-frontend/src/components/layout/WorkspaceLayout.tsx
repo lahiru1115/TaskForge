@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import { Outlet, Link } from 'react-router-dom'
-import { Building2 } from 'lucide-react'
+import { Building2, Loader2 } from 'lucide-react'
 import { WorkspaceProvider, useCurrentWorkspace } from '@/context/WorkspaceContext'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 
 // Read by App.tsx's root redirect so "/" reopens the last workspace visited.
@@ -17,8 +16,9 @@ function WorkspaceGate() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Skeleton className="h-8 w-48" />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Loading workspace…</p>
       </div>
     )
   }
